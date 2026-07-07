@@ -225,3 +225,17 @@ npm run infra:down            # Stop Docker services
 npm run infra:logs            # Follow Docker logs
 npm run infra:reset           # Wipe volumes + restart (WARNING: deletes data)
 ```
+
+---
+
+## Development Quality Standards & Guidelines
+
+To maintain production-grade codebase health, every developer (and AI assistant) must strictly follow these rules:
+
+1. **Continuous Validation:** After modifying or adding any code, you **MUST** run the validation suite to catch bugs early:
+   * Run type checking: `npm run backend:type-check` (verifies both application and test codes).
+   * Run code style check: `npm run format` / `npm run backend:format:check`.
+   * Run linter: `npm run backend:lint`.
+   * Run unit tests: `npm run backend:test`.
+2. **Zero-Tolerance Policy:** No code should be committed or pushed with active TypeScript errors, ESLint errors/warnings, or failing tests.
+3. **Investigate & Root Cause:** If a validation check fails, immediately pause, trace the root cause (such as path resolution issues, type conflicts, or incorrect type casting), and apply clean architectural fixes. Avoid temporary patches.
