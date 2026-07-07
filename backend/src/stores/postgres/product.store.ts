@@ -1,0 +1,52 @@
+import { Pool } from 'pg';
+import type { IProductStore } from '../../domain/interfaces';
+import type { ProductEntity } from '../../domain/entities';
+
+export class ProductStore implements IProductStore {
+  constructor(private readonly db: Pool) {}
+
+  private mapRowToEntity(row: any): ProductEntity {
+    return {
+      id: row.id,
+      shopId: row.shop_id,
+      name: row.name,
+      description: row.description || undefined,
+      price: parseFloat(row.price),
+      stock: parseInt(row.stock, 10),
+      isFlashSale: row.is_flash_sale,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    };
+  }
+
+  async findById(id: string): Promise<ProductEntity | null> {
+    const query = `
+      SELECT id, shop_id, name, description, price, stock, is_flash_sale, created_at, updated_at
+      FROM products
+      WHERE id = $1
+    `;
+    const { rows } = await this.db.query(query, [id]);
+    if (rows.length === 0) return null;
+    return this.mapRowToEntity(rows[0]);
+  }
+
+  async findByShopId(shopId: string): Promise<ProductEntity[]> {
+    const query = `
+      SELECT id, shop_id, name, description, price, stock, is_flash_sale, created_at, updated_at
+      FROM products
+      WHERE shop_id = $1
+      ORDER BY created_at DESC
+    `;
+    const { rows } = await this.db.query(query, [shopId]);
+    return rows.map((row) => this.mapRowToEntity(row));
+  }
+
+  async updateStock(id: string, delta: number): Promise<void> {
+    const query = `
+      UPDATE products
+      SET stock = stock + $2
+      WHERE id = $1
+    `;
+    await this.db.query(query, [id, delta]);
+  }
+}
