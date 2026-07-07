@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Mocked } from 'vitest';
 import { OrderWorkerService } from '../../../src/services/order-worker.service';
 import type { IOrderStore, IProductStore, IStockStore } from '../../../src/domain/interfaces';
 import type { OrderPendingEvent, OrderEntity } from '../../../src/domain/entities';
 
 describe('OrderWorkerService (Saga & Asynchronous Worker)', () => {
-  let mockOrderStore: vi.Mocked<IOrderStore>;
-  let mockProductStore: vi.Mocked<IProductStore>;
-  let mockStockStore: vi.Mocked<IStockStore>;
+  let mockOrderStore: Mocked<IOrderStore>;
+  let mockProductStore: Mocked<IProductStore>;
+  let mockStockStore: Mocked<IStockStore>;
   let workerService: OrderWorkerService;
 
   const testEvent: OrderPendingEvent = {
@@ -38,20 +39,20 @@ describe('OrderWorkerService (Saga & Asynchronous Worker)', () => {
       create: vi.fn(),
       findByIdempotencyKey: vi.fn(),
       updateStatus: vi.fn(),
-    } as unknown as vi.Mocked<IOrderStore>;
+    } as unknown as Mocked<IOrderStore>;
 
     mockProductStore = {
       findById: vi.fn(),
       findByShopId: vi.fn(),
       updateStock: vi.fn(),
-    } as unknown as vi.Mocked<IProductStore>;
+    } as unknown as Mocked<IProductStore>;
 
     mockStockStore = {
       atomicCheckout: vi.fn(),
       rollback: vi.fn(),
       getStock: vi.fn(),
       setStock: vi.fn(),
-    } as unknown as vi.Mocked<IStockStore>;
+    } as unknown as Mocked<IStockStore>;
 
     workerService = new OrderWorkerService(mockOrderStore, mockProductStore, mockStockStore);
   });

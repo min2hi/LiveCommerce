@@ -22,7 +22,8 @@
   "include": [
     "apps/**/*",
     "src/**/*",
-    "shared/**/*"
+    "shared/**/*",
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",

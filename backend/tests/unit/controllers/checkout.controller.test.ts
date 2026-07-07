@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Mocked } from 'vitest';
 import { CheckoutController } from '../../../src/http/controllers/checkout.controller';
 import type {
   IProductStore,
@@ -11,11 +12,11 @@ import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../../../src/http/middlewares/types';
 
 describe('CheckoutController', () => {
-  let mockProductStore: vi.Mocked<IProductStore>;
-  let mockOrderStore: vi.Mocked<IOrderStore>;
-  let mockStockStore: vi.Mocked<IStockStore>;
-  let mockIdempotencyStore: vi.Mocked<IIdempotencyStore>;
-  let mockOrderQueue: vi.Mocked<IOrderQueue>;
+  let mockProductStore: Mocked<IProductStore>;
+  let mockOrderStore: Mocked<IOrderStore>;
+  let mockStockStore: Mocked<IStockStore>;
+  let mockIdempotencyStore: Mocked<IIdempotencyStore>;
+  let mockOrderQueue: Mocked<IOrderQueue>;
   let controller: CheckoutController;
 
   let req: Partial<AuthenticatedRequest>;
@@ -28,30 +29,30 @@ describe('CheckoutController', () => {
       findById: vi.fn(),
       findByShopId: vi.fn(),
       updateStock: vi.fn(),
-    } as unknown as vi.Mocked<IProductStore>;
+    } as unknown as Mocked<IProductStore>;
 
     mockOrderStore = {
       create: vi.fn(),
       findByIdempotencyKey: vi.fn(),
       updateStatus: vi.fn(),
-    } as unknown as vi.Mocked<IOrderStore>;
+    } as unknown as Mocked<IOrderStore>;
 
     mockStockStore = {
       atomicCheckout: vi.fn(),
       rollback: vi.fn(),
       getStock: vi.fn(),
       setStock: vi.fn(),
-    } as unknown as vi.Mocked<IStockStore>;
+    } as unknown as Mocked<IStockStore>;
 
     mockIdempotencyStore = {
       setIfAbsent: vi.fn(),
       get: vi.fn(),
-    } as unknown as vi.Mocked<IIdempotencyStore>;
+    } as unknown as Mocked<IIdempotencyStore>;
 
     mockOrderQueue = {
       publish: vi.fn(),
       consume: vi.fn(),
-    } as unknown as vi.Mocked<IOrderQueue>;
+    } as unknown as Mocked<IOrderQueue>;
 
     controller = new CheckoutController(
       mockProductStore,
