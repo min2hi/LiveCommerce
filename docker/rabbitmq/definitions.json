@@ -1,0 +1,79 @@
+{
+  "rabbit_version": "3.13.0",
+  "rabbitmq_version": "3.13.0",
+  "users": [
+    {
+      "name": "livecommerce",
+      "password": "secret",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    { "name": "/" }
+  ],
+  "permissions": [
+    {
+      "user": "livecommerce",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "order.exchange",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "order.dlx",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "order.queue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "order.dlx",
+        "x-dead-letter-routing-key": "order.dead",
+        "x-message-ttl": 86400000
+      }
+    },
+    {
+      "name": "order.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "order.exchange",
+      "vhost": "/",
+      "destination": "order.queue",
+      "destination_type": "queue",
+      "routing_key": "order.pending",
+      "arguments": {}
+    },
+    {
+      "source": "order.dlx",
+      "vhost": "/",
+      "destination": "order.dlq",
+      "destination_type": "queue",
+      "routing_key": "order.dead",
+      "arguments": {}
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+# CODEOWNERS — Define mandatory reviewers per file path
+# Format: <path_pattern> <github_user_or_team>
+# The listed owners MUST approve PRs that change matching files.
+# More specific rules take precedence over general rules.
+
+# ── Default: All files require review ────────────────────────────────────
+*                                   @your-github-username
+
+# ── AI Harness — Sensitive: RAG, Guardrails, Agent logic ─────────────────
+backend/src/ai/**                   @your-github-username
+backend/src/stores/redis/**         @your-github-username
+
+# ── Infrastructure & Docker — High risk changes ───────────────────────────
+docker/                             @your-github-username
+docker-compose.yml                  @your-github-username
+docker/postgres/init.sql            @your-github-username
+
+# ── CI/CD Pipelines — Must review before merging ─────────────────────────
+.github/workflows/**                @your-github-username
+
+# ── Security configs ──────────────────────────────────────────────────────
+.gitleaks.toml                      @your-github-username
+backend/eslint.config.mjs           @your-github-username
+
+# ── Domain layer — Core business logic ───────────────────────────────────
+backend/src/domain/**               @your-github-username
+
+# ── Shared utilities — Used everywhere, breakage has wide impact ──────────
+backend/shared/**                   @your-github-username

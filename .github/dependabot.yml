@@ -1,0 +1,51 @@
+# Dependabot — Automated Dependency Updates
+# Creates PRs automatically when packages have security updates or new versions
+# PRs go through CI pipeline before merging
+
+version: 2
+
+updates:
+  # ── npm dependencies ─────────────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    # Limit open PRs to avoid noise
+    open-pull-requests-limit: 10
+    # Group minor/patch updates together (fewer PRs)
+    groups:
+      langchain-ecosystem:
+        patterns:
+          - "@langchain/*"
+          - "langchain"
+          - "langsmith"
+      typescript-tooling:
+        patterns:
+          - "typescript"
+          - "@typescript-eslint/*"
+          - "ts-node-dev"
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "@playwright/*"
+    # Labels for Dependabot PRs
+    labels:
+      - "dependencies"
+      - "automated"
+    # Auto-assign reviewer
+    reviewers:
+      - "your-github-username"  # TODO: Replace with actual username
+
+  # ── GitHub Actions dependencies ───────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "ci/cd"
+      - "automated"

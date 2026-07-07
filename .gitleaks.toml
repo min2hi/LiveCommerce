@@ -1,0 +1,39 @@
+# Gitleaks Configuration
+# Scans git history for accidentally committed secrets
+# Run locally: gitleaks detect --source . --verbose
+
+title = "LiveCommerce Gitleaks Config"
+
+[extend]
+useDefault = true  # Inherit all default rules (OpenAI, AWS, GCP keys, etc.)
+
+# ── Custom Rules ──────────────────────────────────────────────────────────
+[[rules]]
+id = "livecommerce-jwt-secret"
+description = "Hardcoded JWT Secret"
+regex = '''JWT_SECRET\s*=\s*['"]?[A-Za-z0-9_\-]{16,}['"]?'''
+severity = "CRITICAL"
+tags = ["security", "jwt"]
+
+[[rules]]
+id = "livecommerce-db-password"
+description = "Database password in code"
+regex = '''(POSTGRES_PASSWORD|DB_PASS)\s*=\s*['"]?[^\s'"]{8,}['"]?'''
+severity = "CRITICAL"
+tags = ["security", "database"]
+
+# ── Allowlist — known false positives ─────────────────────────────────────
+[allowlist]
+description = "Global allowlist"
+paths = [
+  ".env.example",        # Example file — intentionally has placeholder values
+  "README.md",           # Docs may reference example keys
+  ".gitleaks.toml",      # This config file itself
+]
+
+# Allow placeholder values used in .env.example
+regexes = [
+  '''sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx''',  # OpenAI placeholder
+  '''ls__xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx''',                 # LangSmith placeholder
+  '''your_super_secret_jwt_key_change_in_production''',       # JWT placeholder
+]

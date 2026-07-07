@@ -1,0 +1,53 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Security Pipeline — Runs on every PR and weekly schedule
+# Jobs: gitleaks (secret scan) + dependency audit
+# ──────────────────────────────────────────────────────────────────────────
+name: Security
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+  schedule:
+    # Every Monday at 8AM UTC (3PM +07:00)
+    - cron: '0 8 * * 1'
+
+jobs:
+  # ── Job 1: Gitleaks — Secret Scanning ────────────────────────────────────
+  gitleaks:
+    name: Secret Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history — scan ALL commits, not just latest
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optional: for org use
+
+  # ── Job 2: Dependency Vulnerability Audit ────────────────────────────────
+  dependency-audit:
+    name: Dependency Audit (npm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run npm audit
+        # --audit-level=high: fail only on HIGH/CRITICAL vulnerabilities
+        run: npm audit --audit-level=high
+
+      - name: Check for known CVEs
+        run: npx better-npm-audit audit --level high
+        continue-on-error: true  # Report but don't block (dependency issues outside our control)

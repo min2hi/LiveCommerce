@@ -1,0 +1,41 @@
+{
+  "name": "livecommerce-monorepo",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend/*"
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "backend:dev": "npm run dev --workspace=backend",
+    "backend:worker": "npm run dev:worker --workspace=backend",
+    "backend:build": "npm run build --workspace=backend",
+    "backend:type-check": "npm run type-check --workspace=backend",
+    "backend:test": "npm run test --workspace=backend",
+    "backend:test:coverage": "npm run test:coverage --workspace=backend",
+    "backend:lint": "npm run lint --workspace=backend",
+    "buyer:dev": "npm run dev --workspace=buyer-app",
+    "buyer:build": "npm run build --workspace=buyer-app",
+    "streamer:dev": "npm run dev --workspace=streamer-dashboard",
+    "streamer:build": "npm run build --workspace=streamer-dashboard",
+    "admin:dev": "npm run dev --workspace=admin-panel",
+    "admin:build": "npm run build --workspace=admin-panel",
+    "format": "prettier --write \"**/*.ts\"",
+    "format:check": "prettier --check \"**/*.ts\"",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs -f",
+    "infra:reset": "docker compose down -v && docker compose up -d"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.0",
+    "@commitlint/config-conventional": "^21.2.0",
+    "@playwright/test": "^1.61.1",
+    "eslint": "^10.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.9.4"
+  }
+}

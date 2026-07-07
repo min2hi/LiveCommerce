@@ -1,0 +1,9 @@
+dist/
+node_modules/
+*.k6.js
+*.json
+*.md
+*.sql
+*.yml
+*.yaml
+.env*
