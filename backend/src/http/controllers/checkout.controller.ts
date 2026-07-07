@@ -78,7 +78,7 @@ export class CheckoutController {
       const checkoutStatus = await this.stockStore.atomicCheckout(productId, userId);
 
       if (checkoutStatus === 'out_of_stock') {
-        res.status(400).json({ error: 'Product is out of stock' });
+        res.status(409).json({ error: 'Product is out of stock' });
         return;
       }
 

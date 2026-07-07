@@ -20,6 +20,9 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 
+// Load pre-generated JWT tokens for 500 distinct buyers
+const tokens = JSON.parse(open('./tokens.json'));
+
 // ── Custom Metrics ──────────────────────────────────────────────────────
 const ordersConfirmed  = new Counter('orders_confirmed');
 const ordersRejected   = new Counter('orders_rejected');
@@ -49,8 +52,10 @@ export const options = {
 // ── Test Execution ───────────────────────────────────────────────────────
 export default function () {
   const BASE_URL   = __ENV.BASE_URL || 'http://localhost:3000';
-  const TOKEN      = __ENV.TOKEN    || 'test_jwt_token';
-  const PRODUCT_ID = __ENV.PRODUCT_ID || 'product-uuid-here';
+  const PRODUCT_ID = __ENV.PRODUCT_ID || 'd3b4a9cf-5a5d-47b0-b332-e6a7ea5af782';
+
+  // Retrieve JWT token for the current Virtual User
+  const token = tokens[(__VU - 1) % tokens.length];
 
   // Each VU generates its own unique idempotency key
   const idempotencyKey = `k6-${__VU}-${__ITER}-${Date.now()}`;
@@ -63,7 +68,7 @@ export default function () {
 
   const headers = {
     'Content-Type':    'application/json',
-    'Authorization':   `Bearer ${TOKEN}`,
+    'Authorization':   `Bearer ${token}`,
     'Idempotency-Key': idempotencyKey,
   };
 
@@ -92,9 +97,14 @@ export default function () {
 // ── Teardown Summary ────────────────────────────────────────────────────
 export function handleSummary(data) {
   console.log('\n=== FLASH SALE LOAD TEST SUMMARY ===');
-  console.log(`Orders Confirmed:   ${data.metrics.orders_confirmed?.values?.count ?? 0}`);
-  console.log(`Orders Rejected:    ${data.metrics.orders_rejected?.values?.count ?? 0}`);
-  console.log(`Duplicates Blocked: ${data.metrics.duplicates_blocked?.values?.count ?? 0}`);
-  console.log(`p95 Response Time:  ${data.metrics.http_req_duration?.values?.['p(95)']?.toFixed(2) ?? 'N/A'}ms`);
+  const confirmed = (data.metrics.orders_confirmed && data.metrics.orders_confirmed.values && data.metrics.orders_confirmed.values.count) || 0;
+  const rejected = (data.metrics.orders_rejected && data.metrics.orders_rejected.values && data.metrics.orders_rejected.values.count) || 0;
+  const blocked = (data.metrics.duplicates_blocked && data.metrics.duplicates_blocked.values && data.metrics.duplicates_blocked.values.count) || 0;
+  const duration = (data.metrics.http_req_duration && data.metrics.http_req_duration.values && data.metrics.http_req_duration.values['p(95)']) || 0;
+
+  console.log(`Orders Confirmed:   ${confirmed}`);
+  console.log(`Orders Rejected:    ${rejected}`);
+  console.log(`Duplicates Blocked: ${blocked}`);
+  console.log(`p95 Response Time:  ${duration.toFixed(2)}ms`);
   return {};
 }

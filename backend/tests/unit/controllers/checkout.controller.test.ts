@@ -137,7 +137,7 @@ describe('CheckoutController', () => {
     expect(resStatus).toHaveBeenCalledWith(404);
   });
 
-  it('should return 400 if product is out of stock in Redis', async () => {
+  it('should return 409 if product is out of stock in Redis', async () => {
     mockIdempotencyStore.setIfAbsent.mockResolvedValue(true);
     mockProductStore.findById.mockResolvedValue({
       id: 'product-456',
@@ -148,7 +148,7 @@ describe('CheckoutController', () => {
 
     await controller.checkout(req as AuthenticatedRequest, res as Response);
 
-    expect(resStatus).toHaveBeenCalledWith(400);
+    expect(resStatus).toHaveBeenCalledWith(409);
     expect(resJson).toHaveBeenCalledWith({ error: 'Product is out of stock' });
   });
 

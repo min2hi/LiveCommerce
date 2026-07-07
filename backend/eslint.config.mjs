@@ -55,13 +55,13 @@ export default [
     }
   },
   {
-    files: ["src/infrastructure/**/*.ts", "src/stores/**/*.ts", "shared/**/*.ts", "apps/**/*.ts"],
+    files: ["src/infrastructure/**/*.ts", "src/stores/**/*.ts", "shared/**/*.ts", "apps/**/*.ts", "scratch/**/*.ts"],
     rules: {
       "no-restricted-imports": "off"
     }
   },
   {
-    files: ["tests/**/*.ts", "**/*.test.ts", "**/*.spec.ts"],
+    files: ["tests/**/*.ts", "**/*.test.ts", "**/*.spec.ts", "scratch/**/*.ts"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/explicit-function-return-type": "off"

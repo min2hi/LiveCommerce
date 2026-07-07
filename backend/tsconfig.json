@@ -14,22 +14,11 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@src/*":    ["src/*"],
+      "@src/*": ["src/*"],
       "@shared/*": ["shared/*"],
-      "@apps/*":   ["apps/*"]
+      "@apps/*": ["apps/*"]
     }
   },
-  "include": [
-    "apps/**/*",
-    "src/**/*",
-    "shared/**/*",
-    "tests/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "cmd",
-    "internal",
-    "pkg"
-  ]
+  "include": ["apps/**/*", "src/**/*", "shared/**/*", "tests/**/*", "scratch/**/*"],
+  "exclude": ["node_modules", "dist", "cmd", "internal", "pkg"]
 }
