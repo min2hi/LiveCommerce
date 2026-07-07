@@ -79,7 +79,7 @@ describe('StockStore (Lua Script Integration)', () => {
     // Simulate 5 different users buying concurrently
     const userIds = ['u1', 'u2', 'u3', 'u4', 'u5'];
     const results = await Promise.all(
-      userIds.map((uid) => stockStore.atomicCheckout(testProductId, uid))
+      userIds.map((uid) => stockStore.atomicCheckout(testProductId, uid)),
     );
 
     // Exactly 3 purchases should be 'ok', and 2 should be 'out_of_stock'

@@ -10,8 +10,11 @@ async function verify() {
   // 1. Kiểm tra Postgres
   try {
     const pool = new Pool(config.postgres);
-    const res = await pool.query('SELECT table_name FROM information_schema.tables WHERE table_schema = $1', ['public']);
-    const tables = res.rows.map(r => r.table_name);
+    const res = await pool.query(
+      'SELECT table_name FROM information_schema.tables WHERE table_schema = $1',
+      ['public'],
+    );
+    const tables = res.rows.map((r) => r.table_name);
     console.log('✅ Postgres: Kết nối thành công!');
     console.log(`   Các bảng hiện có: [${tables.join(', ')}]`);
     if (tables.length === 0) {

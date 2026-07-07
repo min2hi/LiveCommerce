@@ -66,11 +66,7 @@ export class StockStore implements IStockStore {
     const buyersKey = this.getBuyersKey(productId);
 
     // Multi transaction to ensure atomic rollback
-    await this.redis
-      .multi()
-      .incrBy(stockKey, 1)
-      .sRem(buyersKey, userId)
-      .exec();
+    await this.redis.multi().incrBy(stockKey, 1).sRem(buyersKey, userId).exec();
   }
 
   async getStock(productId: string): Promise<number> {
@@ -85,10 +81,6 @@ export class StockStore implements IStockStore {
     const buyersKey = this.getBuyersKey(productId);
 
     // Clear old buyers and set new stock
-    await this.redis
-      .multi()
-      .set(stockKey, quantity.toString())
-      .del(buyersKey)
-      .exec();
+    await this.redis.multi().set(stockKey, quantity.toString()).del(buyersKey).exec();
   }
 }
