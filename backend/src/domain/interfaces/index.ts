@@ -80,3 +80,10 @@ export interface IIdempotencyStore {
   setIfAbsent(key: string, value: string, ttlSeconds: number): Promise<boolean>;
   get(key: string): Promise<string | null>;
 }
+
+// ── Order Queue Interface (RabbitMQ) ──────────────────────────────────────
+
+export interface IOrderQueue {
+  publish(event: OrderPendingEvent): Promise<boolean>;
+  consume(handler: (event: OrderPendingEvent) => Promise<void>): Promise<void>;
+}
