@@ -1,0 +1,94 @@
+import type { RedisClientType } from 'redis';
+import type { IStockStore } from '../../domain/interfaces';
+
+export class StockStore implements IStockStore {
+  private readonly LUA_CHECKOUT = `
+    local stockKey = KEYS[1]
+    local buyersKey = KEYS[2]
+    local userId = ARGV[1]
+
+    -- 1. Check if user already purchased
+    if redis.call("sismember", buyersKey, userId) == 1 then
+      return -1
+    end
+
+    -- 2. Check if stock exists
+    local stock = redis.call("get", stockKey)
+    if not stock then
+      return -2
+    end
+
+    -- 3. Check if stock is out
+    local stockNum = tonumber(stock)
+    if stockNum <= 0 then
+      return 0
+    end
+
+    -- 4. Deduct stock and record buyer
+    redis.call("decrby", stockKey, 1)
+    redis.call("sadd", buyersKey, userId)
+    return 1
+  `;
+
+  constructor(private readonly redis: RedisClientType) {}
+
+  private getStockKey(productId: string): string {
+    return `product:stock:${productId}`;
+  }
+
+  private getBuyersKey(productId: string): string {
+    return `product:buyers:${productId}`;
+  }
+
+  async atomicCheckout(
+    productId: string,
+    userId: string,
+  ): Promise<'ok' | 'out_of_stock' | 'already_purchased'> {
+    const stockKey = this.getStockKey(productId);
+    const buyersKey = this.getBuyersKey(productId);
+
+    // Run the Lua script
+    const result = await this.redis.eval(this.LUA_CHECKOUT, {
+      keys: [stockKey, buyersKey],
+      arguments: [userId],
+    });
+
+    const status = Number(result);
+    if (status === 1) return 'ok';
+    if (status === -1) return 'already_purchased';
+    if (status === 0 || status === -2) return 'out_of_stock';
+
+    return 'out_of_stock';
+  }
+
+  async rollback(productId: string, userId: string): Promise<void> {
+    const stockKey = this.getStockKey(productId);
+    const buyersKey = this.getBuyersKey(productId);
+
+    // Multi transaction to ensure atomic rollback
+    await this.redis
+      .multi()
+      .incrBy(stockKey, 1)
+      .sRem(buyersKey, userId)
+      .exec();
+  }
+
+  async getStock(productId: string): Promise<number> {
+    const stockKey = this.getStockKey(productId);
+    const stock = await this.redis.get(stockKey);
+    if (!stock) return 0;
+    return parseInt(stock, 10);
+  }
+
+  async setStock(productId: string, quantity: number): Promise<void> {
+    const stockKey = this.getStockKey(productId);
+    const buyersKey = this.getBuyersKey(productId);
+
+    // Clear old buyers and set new stock
+    await this.redis
+      .multi()
+      .set(stockKey, quantity.toString())
+      .del(buyersKey)
+      .exec();
+  }
+}
