@@ -20,18 +20,20 @@ export class OrderQueue implements IOrderQueue {
   }
 
   async consume(handler: (event: OrderPendingEvent) => Promise<void>): Promise<void> {
-    await this.channel.consume(this.queueName, async (msg) => {
+    await this.channel.consume(this.queueName, (msg) => {
       if (!msg) return;
 
-      try {
-        const content = JSON.parse(msg.content.toString()) as OrderPendingEvent;
-        await handler(content);
-        this.channel.ack(msg);
-      } catch (err) {
-        console.error('[OrderQueue] Failed to process queue message:', err);
-        // Reject message and do NOT requeue to trigger dead-lettering (DLX/DLQ)
-        this.channel.nack(msg, false, false);
-      }
+      void (async (): Promise<void> => {
+        try {
+          const content = JSON.parse(msg.content.toString()) as OrderPendingEvent;
+          await handler(content);
+          this.channel.ack(msg);
+        } catch (err) {
+          console.error('[OrderQueue] Failed to process queue message:', err);
+          // Reject message and do NOT requeue to trigger dead-lettering (DLX/DLQ)
+          this.channel.nack(msg, false, false);
+        }
+      })();
     });
   }
 }

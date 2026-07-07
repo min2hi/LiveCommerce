@@ -55,7 +55,7 @@ export default [
     }
   },
   {
-    files: ["src/infrastructure/**/*.ts", "src/stores/**/*.ts", "shared/**/*.ts"],
+    files: ["src/infrastructure/**/*.ts", "src/stores/**/*.ts", "shared/**/*.ts", "apps/**/*.ts"],
     rules: {
       "no-restricted-imports": "off"
     }

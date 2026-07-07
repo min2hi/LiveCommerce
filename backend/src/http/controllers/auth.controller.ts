@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+// eslint-disable-next-line no-restricted-imports
 import type { Pool } from 'pg';
 import type { IUserStore } from '../../domain/interfaces';
 import type { UserRole } from '../../domain/entities';
@@ -114,7 +115,7 @@ export class AuthController {
           shopId,
         },
         config.jwt.secret,
-        { expiresIn: config.jwt.expiresIn as any },
+        { expiresIn: config.jwt.expiresIn as jwt.SignOptions['expiresIn'] },
       );
 
       res.json({

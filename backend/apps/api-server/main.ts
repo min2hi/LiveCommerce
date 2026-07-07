@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import http from 'http';
 import express from 'express';
 import { config } from '../../src/config';
 import { getDbPool, closeDbPool } from '../../src/infrastructure/database';
@@ -28,9 +29,9 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-let server: any;
+let server: http.Server;
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   logger.info('Initializing API Server dependencies...');
 
   // Connect to Infra singleton instances
@@ -75,20 +76,22 @@ async function gracefulShutdown(signal: string): Promise<void> {
   broadcastShutdown();
 
   if (server) {
-    server.close(async () => {
+    server.close(() => {
       logger.info('[API] HTTP server closed.');
-      try {
-        await closeRabbitMQConnection();
-        await closeRedisClient();
-        await closeDbPool();
-        logger.info('[API] Shutdown complete.');
-        process.exit(0);
-      } catch (err) {
-        logger.error('[API] Error during resource cleanup:', {
-          error: err instanceof Error ? err.message : String(err),
-        });
-        process.exit(1);
-      }
+      void (async (): Promise<void> => {
+        try {
+          await closeRabbitMQConnection();
+          await closeRedisClient();
+          await closeDbPool();
+          logger.info('[API] Shutdown complete.');
+          process.exit(0);
+        } catch (err) {
+          logger.error('[API] Error during resource cleanup:', {
+            error: err instanceof Error ? err.message : String(err),
+          });
+          process.exit(1);
+        }
+      })();
     });
   } else {
     process.exit(0);

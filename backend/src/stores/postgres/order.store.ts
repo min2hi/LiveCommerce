@@ -6,6 +6,7 @@ import type { OrderPendingEvent } from '../../domain/entities';
 export class OrderStore implements IOrderStore {
   constructor(private readonly db: Pool) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapRowToEntity(row: any): OrderEntity {
     return {
       id: row.id,

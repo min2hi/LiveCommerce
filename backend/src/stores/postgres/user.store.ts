@@ -5,6 +5,7 @@ import type { UserEntity } from '../../domain/entities';
 export class UserStore implements IUserStore {
   constructor(private readonly db: Pool) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapRowToEntity(row: any): UserEntity {
     return {
       id: row.id,

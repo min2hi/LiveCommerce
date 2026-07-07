@@ -11,7 +11,10 @@ import type { AuthenticatedRequest } from './auth.middleware';
 let checkoutLimiter: SlidingWindowRateLimiter;
 let chatLimiter: SlidingWindowRateLimiter;
 
-async function getLimiters() {
+async function getLimiters(): Promise<{
+  checkoutLimiter: SlidingWindowRateLimiter;
+  chatLimiter: SlidingWindowRateLimiter;
+}> {
   const redis = await getRedisClient();
   if (!checkoutLimiter) {
     checkoutLimiter = new SlidingWindowRateLimiter(

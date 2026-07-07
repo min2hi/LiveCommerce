@@ -5,6 +5,7 @@ import type { ProductEntity } from '../../domain/entities';
 export class ProductStore implements IProductStore {
   constructor(private readonly db: Pool) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapRowToEntity(row: any): ProductEntity {
     return {
       id: row.id,
