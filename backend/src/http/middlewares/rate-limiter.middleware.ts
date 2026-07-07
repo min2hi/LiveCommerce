@@ -6,7 +6,7 @@ import {
 } from '../../../shared/rate-limiter';
 import { config } from '../../config';
 import { getRedisClient } from '../../infrastructure/cache';
-import type { AuthenticatedRequest } from './types';
+import type { AuthenticatedRequest } from './auth.middleware';
 
 let checkoutLimiter: SlidingWindowRateLimiter;
 let chatLimiter: SlidingWindowRateLimiter;

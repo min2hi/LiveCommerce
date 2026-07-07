@@ -9,7 +9,7 @@ import type {
   IOrderQueue,
 } from '../../../src/domain/interfaces';
 import type { Response } from 'express';
-import type { AuthenticatedRequest } from '../../../src/http/middlewares/types';
+import type { AuthenticatedRequest } from '../../../src/http/middlewares/auth.middleware';
 
 describe('CheckoutController', () => {
   let mockProductStore: Mocked<IProductStore>;

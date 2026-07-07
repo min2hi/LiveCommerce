@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 import { registerSseClient } from '../../sse/sse-manager';
-import type { AuthenticatedRequest } from '../middlewares/types';
+import type { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
 export class SseController {
   connect = (req: AuthenticatedRequest, res: Response): void => {

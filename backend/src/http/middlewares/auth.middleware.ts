@@ -1,7 +1,15 @@
-import type { Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../../config';
-import type { AuthenticatedRequest } from './types';
+
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    username: string;
+    role: 'BUYER' | 'STREAMER';
+    shopId?: string;
+  };
+}
 
 export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;

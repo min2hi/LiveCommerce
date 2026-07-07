@@ -7,7 +7,7 @@ import type {
   IIdempotencyStore,
   IOrderQueue,
 } from '../../domain/interfaces';
-import type { AuthenticatedRequest } from '../middlewares/types';
+import type { AuthenticatedRequest } from '../middlewares/auth.middleware';
 import type { OrderPendingEvent } from '../../domain/entities';
 
 export class CheckoutController {
