@@ -134,7 +134,7 @@ async function bootstrap(): Promise<void> {
     await runner({
       dbClient: dbPool,
       direction: 'up',
-      dir: path.join(__dirname, '..', '..', 'migrations'),
+      dir: path.join(process.cwd(), 'migrations'),
       migrationsTable: 'pgmigrations',
       verbose: true,
     });
