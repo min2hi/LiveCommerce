@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { Play, Users, Clock } from "@phosphor-icons/react";
 
@@ -64,69 +65,72 @@ export function BentoGrid() {
             const isTinted = room.variant === "tinted";
 
             return (
-              <motion.div
+              <Link
+                href="/live/1"
                 key={room.id}
-                className={`group relative overflow-hidden rounded-2xl flex flex-col justify-end p-6 border transition-all duration-300 ${
-                  isHero ? "md:col-span-2" : "md:col-span-1"
-                } ${
-                  isTinted 
-                    ? "bg-zinc-950 border-zinc-900 text-zinc-50 shadow-sm" 
-                    : "bg-white border-zinc-200/60 shadow-sm hover:shadow-md hover:border-zinc-200"
-                }`}
-                initial={reduce ? false : { opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.1 }}
-                transition={{ duration: 0.6, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                className={`${isHero ? "md:col-span-2" : "md:col-span-1"} block cursor-pointer`}
               >
-                {/* Background Layer */}
-                {!isTinted && room.image && (
-                  <>
-                    <img
-                      src={room.image}
-                      alt={room.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/40 to-transparent"></div>
-                  </>
-                )}
+                <motion.div
+                  className={`group relative w-full h-full overflow-hidden rounded-2xl flex flex-col justify-end p-6 border transition-all duration-300 ${
+                    isTinted 
+                      ? "bg-zinc-950 border-zinc-900 text-zinc-50 shadow-sm" 
+                      : "bg-white border-zinc-200/60 shadow-sm hover:shadow-md hover:border-zinc-200"
+                  }`}
+                  initial={reduce ? false : { opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.1 }}
+                  transition={{ duration: 0.6, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {/* Background Layer */}
+                  {!isTinted && room.image && (
+                    <>
+                      <img
+                        src={room.image}
+                        alt={room.title}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/40 to-transparent"></div>
+                    </>
+                  )}
 
-                {/* Content Layer */}
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        room.status === "LIVE"
-                          ? "bg-red-500 text-white"
-                          : "bg-zinc-800 text-zinc-200"
-                      }`}
-                    >
-                      {room.status === "LIVE" && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse mr-1"></span>}
-                      {room.status}
-                    </span>
-                    <span className={`inline-flex items-center text-xs font-mono font-medium ${isTinted ? "text-zinc-400" : "text-zinc-200"}`}>
-                      {room.status === "LIVE" ? <Users className="mr-1" weight="fill" /> : <Clock className="mr-1" weight="bold" />}
-                      {room.viewers}
-                    </span>
-                  </div>
-
-                  <h3 className={`text-xl md:text-2xl font-bold tracking-tight mb-1.5 ${isTinted ? "text-zinc-50" : "text-white"}`}>
-                    {room.title}
-                  </h3>
-                  <p className={`text-xs font-medium ${isTinted ? "text-zinc-500" : "text-zinc-300"}`}>
-                    by <span className="font-semibold">{room.streamer}</span>
-                  </p>
-                </div>
-
-                {/* Hover Play Button (only for images) */}
-                {!isTinted && (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-zinc-950/20">
-                    <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-lg active:scale-95 transition-transform">
-                      <Play size={24} weight="fill" />
+                  {/* Content Layer */}
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          room.status === "LIVE"
+                            ? "bg-red-500 text-white"
+                            : "bg-zinc-800 text-zinc-200"
+                        }`}
+                      >
+                        {room.status === "LIVE" && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse mr-1"></span>}
+                        {room.status}
+                      </span>
+                      <span className={`inline-flex items-center text-xs font-mono font-medium ${isTinted ? "text-zinc-400" : "text-zinc-200"}`}>
+                        {room.status === "LIVE" ? <Users className="mr-1" weight="fill" /> : <Clock className="mr-1" weight="bold" />}
+                        {room.viewers}
+                      </span>
                     </div>
+
+                    <h3 className={`text-xl md:text-2xl font-bold tracking-tight mb-1.5 ${isTinted ? "text-zinc-50" : "text-white"}`}>
+                      {room.title}
+                    </h3>
+                    <p className={`text-xs font-medium ${isTinted ? "text-zinc-500" : "text-zinc-300"}`}>
+                      by <span className="font-semibold">{room.streamer}</span>
+                    </p>
                   </div>
-                )}
-              </motion.div>
+
+                  {/* Hover Play Button (only for images) */}
+                  {!isTinted && (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-zinc-950/20">
+                      <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 text-white shadow-lg active:scale-95 transition-transform">
+                        <Play size={24} weight="fill" />
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </Link>
             );
           })}
         </div>

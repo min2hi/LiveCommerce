@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
+import Link from "next/link";
 import { motion, useScroll, useTransform } from "motion/react";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
@@ -56,14 +57,16 @@ export function AsymmetricHero() {
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
-              <Button size="lg" className="w-full sm:w-auto inline-flex items-center gap-2 group">
-                Enter Live Rooms
-                <ArrowUpRight 
-                  weight="bold" 
-                  size={16} 
-                  className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" 
-                />
-              </Button>
+              <Link href="/live/1" passHref className="w-full sm:w-auto">
+                <Button size="lg" className="w-full inline-flex items-center gap-2 group cursor-pointer">
+                  Enter Live Rooms
+                  <ArrowUpRight 
+                    weight="bold" 
+                    size={16} 
+                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" 
+                  />
+                </Button>
+              </Link>
             </div>
           </div>
 
