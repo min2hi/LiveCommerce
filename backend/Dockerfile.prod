@@ -12,6 +12,7 @@ ENV NODE_ENV=production
 COPY --from=builder /app/package.json /app/package-lock.json ./
 COPY --from=builder /app/backend/package.json ./backend/
 COPY --from=builder /app/backend/dist ./backend/dist
+COPY --from=builder /app/backend/migrations ./backend/migrations
 COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3000
 CMD ["npm", "run", "start", "--workspace=backend"]
