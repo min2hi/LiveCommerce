@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import http from 'http';
+import path from 'path';
 import express from 'express';
+import { runner } from 'node-pg-migrate';
 import { config } from '../../src/config';
 import { getDbPool, closeDbPool } from '../../src/infrastructure/database';
 import { getRedisClient, closeRedisClient } from '../../src/infrastructure/cache';
@@ -125,6 +127,25 @@ async function bootstrap(): Promise<void> {
 
   // Connect to Infra singleton instances
   const dbPool = getDbPool();
+
+  // Run pending database migrations
+  try {
+    logger.info('Running pending database migrations...');
+    await runner({
+      dbClient: dbPool,
+      direction: 'up',
+      dir: path.join(__dirname, '..', '..', 'migrations'),
+      migrationsTable: 'pgmigrations',
+      verbose: true,
+    });
+    logger.info('Database migrations completed successfully.');
+  } catch (err) {
+    logger.error('Failed to run database migrations:', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    process.exit(1);
+  }
+
   const redisClient = await getRedisClient();
   const rabbitChannel = await getRabbitMQChannel();
 
