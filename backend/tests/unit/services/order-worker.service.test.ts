@@ -52,6 +52,7 @@ describe('OrderWorkerService (Saga & Asynchronous Worker)', () => {
       rollback: vi.fn(),
       getStock: vi.fn(),
       setStock: vi.fn(),
+      publishConfirmedOrder: vi.fn(),
     } as unknown as Mocked<IStockStore>;
 
     workerService = new OrderWorkerService(mockOrderStore, mockProductStore, mockStockStore);
@@ -80,6 +81,18 @@ describe('OrderWorkerService (Saga & Asynchronous Worker)', () => {
       -testEvent.quantity,
     );
     expect(mockOrderStore.updateStatus).toHaveBeenCalledWith(testOrder.id, 'CONFIRMED');
+    expect(mockStockStore.publishConfirmedOrder).toHaveBeenCalledWith(
+      testEvent.shopId,
+      expect.objectContaining({
+        event: 'order_confirmed',
+        data: expect.objectContaining({
+          id: testOrder.id,
+          productId: testEvent.productId,
+          quantity: testEvent.quantity,
+          totalPrice: testEvent.totalPrice,
+        }),
+      }),
+    );
     expect(mockStockStore.rollback).not.toHaveBeenCalled();
   });
 

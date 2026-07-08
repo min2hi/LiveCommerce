@@ -55,6 +55,9 @@ export interface IStockStore {
 
   getStock(productId: string): Promise<number>;
   setStock(productId: string, quantity: number): Promise<void>;
+
+  /** Publish confirmed order event to Redis channel for the shop */
+  publishConfirmedOrder(shopId: string, payload: unknown): Promise<void>;
 }
 
 // ── Knowledge Store Interface (pgvector RAG) ──────────────────────────────

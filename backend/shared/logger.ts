@@ -1,3 +1,5 @@
+import { getTraceId } from './trace-context';
+
 /**
  * Structured Logger
  * Automatically prefixes every log line with:
@@ -22,7 +24,8 @@ function formatMessage(
   context?: LogContext,
 ): string {
   const ts = new Date().toISOString();
-  const traceTag = context?.traceId ? `[TraceId:${context.traceId}]` : '';
+  const traceId = context?.traceId || getTraceId();
+  const traceTag = traceId ? `[TraceId:${traceId}]` : '';
   const extras = context
     ? JSON.stringify(Object.fromEntries(Object.entries(context).filter(([k]) => k !== 'traceId')))
     : '';

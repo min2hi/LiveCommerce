@@ -38,6 +38,26 @@ export class OrderWorkerService {
       // 4. Confirm the order
       await this.orderStore.updateStatus(order.id, 'CONFIRMED');
 
+      // 4b. Publish confirmed order to Redis Pub/Sub for SSE broadcasting
+      try {
+        await this.stockStore.publishConfirmedOrder(event.shopId, {
+          id: order.id,
+          event: 'order_confirmed',
+          data: {
+            id: order.id,
+            productId: event.productId,
+            quantity: event.quantity,
+            totalPrice: Number(event.totalPrice),
+            createdAt: order.createdAt || new Date(),
+          },
+        });
+      } catch (pubErr) {
+        logger.error(`[OrderWorker] Failed to publish order success event to Redis Pub/Sub`, {
+          error: pubErr instanceof Error ? pubErr.message : String(pubErr),
+          traceId: event.traceId,
+        });
+      }
+
       logger.info(`[OrderWorker] Order successfully confirmed: ${order.id}`, {
         traceId: event.traceId,
       });

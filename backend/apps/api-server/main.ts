@@ -17,12 +17,99 @@ import { SseController } from '../../src/http/controllers/sse.controller';
 import { getAuthRouter } from '../../src/http/routes/auth.routes';
 import { getCheckoutRouter } from '../../src/http/routes/checkout.routes';
 import { getSseRouter } from '../../src/http/routes/sse.routes';
-import { broadcastShutdown } from '../../src/sse/sse-manager';
+import { getAiRouter } from '../../src/http/routes/ai.routes';
+import { getKnowledgeRouter } from '../../src/http/routes/knowledge.routes';
+import { AiController } from '../../src/http/controllers/ai.controller';
+import { broadcastShutdown, pushEventToShop } from '../../src/sse/sse-manager';
 import { createLogger } from '../../shared/logger';
+
+import { traceStore } from '../../shared/trace-context';
+import { v4 as uuidv4 } from 'uuid';
 
 const logger = createLogger('ApiServer');
 const app = express();
 app.use(express.json());
+
+// Trace ID Middleware using AsyncLocalStorage
+app.use((req, res, next) => {
+  const traceId =
+    (req.headers['x-trace-id'] as string) || (req.headers['x-request-id'] as string) || uuidv4();
+  res.setHeader('X-Trace-Id', traceId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (req as any).traceId = traceId;
+
+  traceStore.run(traceId, () => {
+    next();
+  });
+});
+
+import {
+  httpRequestsTotal,
+  httpRequestDuration,
+  metricsRegistry,
+} from '../../src/infrastructure/metrics';
+
+// Enable CORS for frontend clients
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-Requested-With,Content-Type,Authorization,Idempotency-Key,X-Idempotency-Key,X-Trace-Id',
+  );
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
+// Prometheus HTTP Metrics Middleware
+app.use((req, res, next) => {
+  const start = process.hrtime();
+
+  res.on('finish', () => {
+    if (req.path === '/metrics' || req.path === '/health') return;
+
+    const diff = process.hrtime(start);
+    const durationInSeconds = diff[0] + diff[1] / 1e9;
+
+    let route = req.route ? req.route.path : req.path;
+    if (req.params) {
+      for (const [key, value] of Object.entries(req.params)) {
+        if (value) {
+          route = route.replace(value, `:${key}`);
+        }
+      }
+    }
+
+    httpRequestsTotal.inc({
+      method: req.method,
+      route: route || req.path,
+      status: res.statusCode.toString(),
+    });
+
+    httpRequestDuration.observe(
+      {
+        method: req.method,
+        route: route || req.path,
+      },
+      durationInSeconds,
+    );
+  });
+
+  next();
+});
+
+// Metrics Endpoint for Prometheus scraping
+app.get('/metrics', async (_req, res) => {
+  try {
+    res.set('Content-Type', metricsRegistry.contentType);
+    res.end(await metricsRegistry.metrics());
+  } catch (err) {
+    res.status(500).end(err);
+  }
+});
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -30,6 +117,8 @@ app.get('/health', (_req, res) => {
 });
 
 let server: http.Server;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let redisSubClient: any;
 
 async function bootstrap(): Promise<void> {
   logger.info('Initializing API Server dependencies...');
@@ -57,11 +146,35 @@ async function bootstrap(): Promise<void> {
     orderQueue,
   );
   const sseController = new SseController();
+  const aiController = new AiController();
 
   // Register Routes
   app.use('/api/auth', getAuthRouter(authController));
   app.use('/api/checkout', getCheckoutRouter(checkoutController));
   app.use('/api/sse', getSseRouter(sseController));
+  app.use('/api/ai', getAiRouter(aiController));
+  app.use('/api/knowledge', getKnowledgeRouter(aiController));
+
+  // Establish Redis Pub/Sub Subscriber for SSE events
+  redisSubClient = redisClient.duplicate();
+  await redisSubClient.connect();
+
+  await redisSubClient.pSubscribe('shop:orders:*', (message: string, channel: string) => {
+    try {
+      const channelParts = channel.split(':');
+      const shopId = channelParts[channelParts.length - 1];
+      if (!shopId) return;
+
+      const eventPayload = JSON.parse(message);
+      pushEventToShop(shopId, eventPayload);
+    } catch (err) {
+      logger.error('[API] Error parsing/forwarding Redis Pub/Sub message:', {
+        error: err instanceof Error ? err.message : String(err),
+        channel,
+      });
+    }
+  });
+  logger.info('[API] Redis Pub/Sub Subscriber initialized on channel "shop:orders:*"');
 
   server = app.listen(config.server.port, () => {
     logger.info(`[API] Server running on port ${config.server.port} (${config.server.nodeEnv})`);
@@ -80,6 +193,10 @@ async function gracefulShutdown(signal: string): Promise<void> {
       logger.info('[API] HTTP server closed.');
       void (async (): Promise<void> => {
         try {
+          if (redisSubClient) {
+            await redisSubClient.quit();
+            logger.info('[API] Redis Pub/Sub Subscriber closed.');
+          }
           await closeRabbitMQConnection();
           await closeRedisClient();
           await closeDbPool();

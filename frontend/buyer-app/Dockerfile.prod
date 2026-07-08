@@ -1,0 +1,19 @@
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY frontend/buyer-app/package.json ./frontend/buyer-app/
+COPY backend/package.json ./backend/
+RUN npm ci
+COPY . .
+RUN npm run buyer:build
+
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/package.json /app/package-lock.json ./
+COPY --from=builder /app/frontend/buyer-app/package.json ./frontend/buyer-app/
+COPY --from=builder /app/frontend/buyer-app/.next ./frontend/buyer-app/.next
+COPY --from=builder /app/frontend/buyer-app/public ./frontend/buyer-app/public
+COPY --from=builder /app/node_modules ./node_modules
+EXPOSE 3001
+CMD ["npm", "run", "start", "--workspace=buyer-app"]

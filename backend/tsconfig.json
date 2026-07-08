@@ -19,6 +19,13 @@
       "@apps/*": ["apps/*"]
     }
   },
-  "include": ["apps/**/*", "src/**/*", "shared/**/*", "tests/**/*", "scratch/**/*"],
+  "include": [
+    "apps/**/*",
+    "src/**/*",
+    "shared/**/*",
+    "tests/**/*",
+    "scratch/**/*",
+    "seed-test-data.ts"
+  ],
   "exclude": ["node_modules", "dist", "cmd", "internal", "pkg"]
 }

@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #18181b;
+  --color-zinc-100: #f4f4f5;
+  --color-electric-blue: #0ea5e9;
+  --color-emerald-accent: #10b981;
+
+  --font-geist: "Geist", system-ui, sans-serif;
+  --font-geist-mono: "Geist Mono", monospace;
+}
+
+@layer base {
+  :root {
+    --background: #fdfdfd;
+    --foreground: #09090b;
+    --primary: #0ea5e9;
+  }
+
+  /* The page has ONE theme. Buyer app defaults to light. */
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-geist);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .glassmorphism {
+    @apply backdrop-blur-md bg-white/5 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)];
+  }
+}

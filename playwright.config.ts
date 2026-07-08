@@ -11,8 +11,8 @@ export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: "**/*.e2e.ts",
 
-  // Run tests in parallel
-  fullyParallel: true,
+  // Run tests sequentially to avoid rate limiter conflicts in dev
+  fullyParallel: false,
 
   // Fail CI if test.only() accidentally left in code
   forbidOnly: !!process.env.CI,
@@ -20,8 +20,8 @@ export default defineConfig({
   // Retry failed tests in CI (flaky test protection)
   retries: process.env.CI ? 2 : 0,
 
-  // Parallel workers
-  workers: process.env.CI ? 1 : undefined,
+  // Parallel workers - set to 1 for sequential run
+  workers: 1,
 
   // Test reporter
   reporter: [
@@ -71,22 +71,22 @@ export default defineConfig({
       testMatch: "**/buyer-app/**/*.e2e.ts",
     },
 
-    // Streamer Dashboard tests (Vite — port 5173)
+    // Streamer Dashboard tests (Vite — port 3002)
     {
       name: "streamer-dashboard-chromium",
       use: {
         ...devices["Desktop Chrome"],
-        baseURL: process.env.STREAMER_DASHBOARD_URL || "http://localhost:5173",
+        baseURL: process.env.STREAMER_DASHBOARD_URL || "http://localhost:3002",
       },
       testMatch: "**/streamer-dashboard/**/*.e2e.ts",
     },
 
-    // Admin Panel tests (Vite — port 5174)
+    // Admin Panel tests (Vite — port 3003)
     {
       name: "admin-panel-chromium",
       use: {
         ...devices["Desktop Chrome"],
-        baseURL: process.env.ADMIN_PANEL_URL || "http://localhost:5174",
+        baseURL: process.env.ADMIN_PANEL_URL || "http://localhost:3003",
       },
       testMatch: "**/admin-panel/**/*.e2e.ts",
     },

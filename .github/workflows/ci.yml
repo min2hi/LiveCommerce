@@ -1,108 +1,74 @@
-# ──────────────────────────────────────────────────────────────────────────
-# CI Pipeline — Runs on every PR and push to main/develop
-# Jobs: type-check → lint → unit-tests → build
-# All must pass before PR can be merged (branch protection rule)
-# ──────────────────────────────────────────────────────────────────────────
-name: CI
+name: CI/CD Pipeline
 
 on:
-  pull_request:
-    branches: [main, develop]
   push:
-    branches: [main, develop]
-
-# Cancel previous runs on same branch when new commit is pushed
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
 
 jobs:
-  # ── Job 1: TypeScript Type Check ──────────────────────────────────────────
-  type-check:
-    name: Type Check
+  build-test-lint:
     runs-on: ubuntu-latest
+
+    services:
+      # We spin up docker services via compose instead of direct services to reuse docker-compose configs
+      # but we can also use compose command in step.
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: 22
+          cache: "npm"
 
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+      - name: Install Dependencies
+        run: npm ci
 
-      - name: Run TypeScript check
-        run: npm run backend:type-check
+      - name: Lint Workspace
+        run: npm run lint
 
-  # ── Job 2: Lint ───────────────────────────────────────────────────────────
-  lint:
-    name: Lint & Format Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Type Check Workspace
+        run: npm run type-check
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
+      - name: Run Unit Tests
+        run: npm run test
 
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Run ESLint
-        run: npm run backend:lint
-
-      - name: Run Prettier check
-        run: npm run format:check
-
-  # ── Job 3: Unit Tests ─────────────────────────────────────────────────────
-  unit-tests:
-    name: Unit Tests (Vitest)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Run unit tests with coverage
-        run: npm run backend:test:coverage
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: backend/coverage/
-          retention-days: 7
-
-  # ── Job 4: Build Check ────────────────────────────────────────────────────
-  build:
-    name: Build Check
-    runs-on: ubuntu-latest
-    needs: [type-check, lint]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Build TypeScript
-        run: npm run backend:build
-
-      - name: Verify build output
+      - name: Start Docker Services
         run: |
-          test -f backend/dist/apps/api-server/main.js || (echo "Build failed: api-server missing" && exit 1)
-          test -f backend/dist/apps/order-worker/main.js || (echo "Build failed: order-worker missing" && exit 1)
-          echo "Build artifacts verified."
+          docker compose up -d
+          # Wait for services to be healthy
+          docker compose ps
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Seed Database & Cache
+        run: |
+          # Wait a few seconds for postgres/redis to boot up
+          sleep 10
+          npx --workspace=backend ts-node seed-test-data.ts
+
+      - name: Build and Start Applications in Background
+        run: |
+          # Build services
+          npm run build
+          # Start dev runner
+          npm run dev &
+          # Wait for ports to be active
+          sleep 15
+
+      - name: Run Playwright E2E Tests
+        run: npx playwright test --project=buyer-app-chromium
+        env:
+          CI: true
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30

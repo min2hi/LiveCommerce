@@ -1,6 +1,8 @@
 import type { RedisClientType } from 'redis';
 import type { IStockStore } from '../../domain/interfaces';
 
+import { redisOperationsTotal } from '../../infrastructure/metrics';
+
 export class StockStore implements IStockStore {
   private readonly LUA_CHECKOUT = `
     local stockKey = KEYS[1]
@@ -47,26 +49,39 @@ export class StockStore implements IStockStore {
     const stockKey = this.getStockKey(productId);
     const buyersKey = this.getBuyersKey(productId);
 
-    // Run the Lua script
-    const result = await this.redis.eval(this.LUA_CHECKOUT, {
-      keys: [stockKey, buyersKey],
-      arguments: [userId],
-    });
+    try {
+      // Run the Lua script
+      const result = await this.redis.eval(this.LUA_CHECKOUT, {
+        keys: [stockKey, buyersKey],
+        arguments: [userId],
+      });
 
-    const status = Number(result);
-    if (status === 1) return 'ok';
-    if (status === -1) return 'already_purchased';
-    if (status === 0 || status === -2) return 'out_of_stock';
+      const status = Number(result);
+      redisOperationsTotal.inc({ operation: 'lua_checkout', success: 'true' });
 
-    return 'out_of_stock';
+      if (status === 1) return 'ok';
+      if (status === -1) return 'already_purchased';
+      if (status === 0 || status === -2) return 'out_of_stock';
+
+      return 'out_of_stock';
+    } catch (err) {
+      redisOperationsTotal.inc({ operation: 'lua_checkout', success: 'false' });
+      throw err;
+    }
   }
 
   async rollback(productId: string, userId: string): Promise<void> {
     const stockKey = this.getStockKey(productId);
     const buyersKey = this.getBuyersKey(productId);
 
-    // Multi transaction to ensure atomic rollback
-    await this.redis.multi().incrBy(stockKey, 1).sRem(buyersKey, userId).exec();
+    try {
+      // Multi transaction to ensure atomic rollback
+      await this.redis.multi().incrBy(stockKey, 1).sRem(buyersKey, userId).exec();
+      redisOperationsTotal.inc({ operation: 'rollback', success: 'true' });
+    } catch (err) {
+      redisOperationsTotal.inc({ operation: 'rollback', success: 'false' });
+      throw err;
+    }
   }
 
   async getStock(productId: string): Promise<number> {
@@ -82,5 +97,10 @@ export class StockStore implements IStockStore {
 
     // Clear old buyers and set new stock
     await this.redis.multi().set(stockKey, quantity.toString()).del(buyersKey).exec();
+  }
+
+  async publishConfirmedOrder(shopId: string, payload: unknown): Promise<void> {
+    const channel = `shop:orders:${shopId}`;
+    await this.redis.publish(channel, JSON.stringify(payload));
   }
 }
