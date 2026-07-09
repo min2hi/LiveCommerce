@@ -2,6 +2,7 @@
 const nextConfig = {
   // Bật React Strict Mode để phát hiện lỗi sớm hơn
   reactStrictMode: true,
+  transpilePackages: ["@phosphor-icons/react"],
 
   // Cho phép Next.js kết nối tới backend API server (chạy ở port 3000)
   async rewrites() {
