@@ -12,7 +12,7 @@ interface Node3D {
 }
 
 interface Canvas3DBackgroundProps {
-  accent?: "emerald" | "cyan" | "none";
+  accent?: "emerald" | "cyan" | "purple" | "none";
 }
 
 export function Canvas3DBackground({ accent = "none" }: Canvas3DBackgroundProps) {
@@ -188,9 +188,15 @@ export function Canvas3DBackground({ accent = "none" }: Canvas3DBackgroundProps)
 
             if (accent !== "none" && minDistMouse < 180) {
               const blend = (1 - minDistMouse / 180) * 0.8;
-              const r = Math.round(63 + (accent === "emerald" ? 16 - 63 : 6 - 63) * blend);
-              const g = Math.round(63 + (accent === "emerald" ? 185 - 63 : 182 - 63) * blend);
-              const b = Math.round(70 + (accent === "emerald" ? 129 - 70 : 212 - 70) * blend);
+              let targetR = 6, targetG = 182, targetB = 212; // default cyan
+              if (accent === "emerald") {
+                targetR = 16; targetG = 185; targetB = 129;
+              } else if (accent === "purple") {
+                targetR = 168; targetG = 85; targetB = 247;
+              }
+              const r = Math.round(63 + (targetR - 63) * blend);
+              const g = Math.round(63 + (targetG - 63) * blend);
+              const b = Math.round(70 + (targetB - 70) * blend);
               ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity + blend * 0.2})`;
             } else {
               ctx.strokeStyle = `rgba(63, 63, 70, ${opacity})`;
@@ -220,9 +226,15 @@ export function Canvas3DBackground({ accent = "none" }: Canvas3DBackgroundProps)
         const baseOpacity = Math.min(1, p.scale * 0.7);
         if (accent !== "none" && p.distToMouse < 150) {
           const blend = (1 - p.distToMouse / 150);
-          const r = Math.round(244 + (accent === "emerald" ? 16 - 244 : 6 - 244) * blend);
-          const g = Math.round(244 + (accent === "emerald" ? 185 - 244 : 182 - 244) * blend);
-          const b = Math.round(245 + (accent === "emerald" ? 129 - 245 : 212 - 245) * blend);
+          let targetR = 6, targetG = 182, targetB = 212; // default cyan
+          if (accent === "emerald") {
+            targetR = 16; targetG = 185; targetB = 129;
+          } else if (accent === "purple") {
+            targetR = 168; targetG = 85; targetB = 247;
+          }
+          const r = Math.round(244 + (targetR - 244) * blend);
+          const g = Math.round(244 + (targetG - 244) * blend);
+          const b = Math.round(245 + (targetB - 245) * blend);
           ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${baseOpacity + blend * 0.3})`;
         } else {
           ctx.fillStyle = `rgba(244, 244, 245, ${baseOpacity})`;
