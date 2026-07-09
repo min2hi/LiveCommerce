@@ -64,8 +64,8 @@ export function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) {
         transition={{ duration: 0.8 }}
       >
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-1.5 text-amber-500 text-[10px] uppercase tracking-widest font-mono font-bold">
-            <Sparkle weight="fill" className="text-amber-500 animate-pulse" size={14} />
+          <div className="flex items-center gap-1.5 text-violet-500 text-[10px] uppercase tracking-widest font-mono font-bold">
+            <Sparkle weight="fill" className="text-violet-500 animate-pulse" size={14} />
             Admin Control Center
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-white">Console Sign In</h2>
@@ -85,7 +85,7 @@ export function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@livecommerce.com"
-              className="h-11 bg-zinc-900/80 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 placeholder-zinc-600 transition-all font-medium"
+              className="h-11 bg-zinc-900/80 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder-zinc-600 transition-all font-medium"
             />
           </div>
 
@@ -101,7 +101,7 @@ export function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="h-11 bg-zinc-900/80 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 placeholder-zinc-600 transition-all font-medium"
+              className="h-11 bg-zinc-900/80 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder-zinc-600 transition-all font-medium"
             />
           </div>
 
@@ -118,7 +118,7 @@ export function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 rounded-full font-mono text-[11px] font-bold uppercase tracking-widest bg-amber-500 text-zinc-950 hover:bg-amber-400 transition-colors cursor-pointer"
+              className="w-full h-11 rounded-full font-mono text-[11px] font-bold uppercase tracking-widest bg-violet-600 text-white hover:bg-violet-500 transition-colors cursor-pointer"
             >
               {loading ? "Authenticating Node..." : "Establish Access"}
             </button>

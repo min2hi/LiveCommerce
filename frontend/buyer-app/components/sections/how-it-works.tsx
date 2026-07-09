@@ -6,17 +6,17 @@ import { motion } from "motion/react";
 
 const STEPS = [
   {
-    icon: <PlayCircle size={32} className="text-zinc-900" />,
+    icon: <PlayCircle size={32} className="text-[#a855f7]" />,
     title: "1. Join Live Streams",
     desc: "Browse featured channels and enter zero-latency stream rooms directly in your browser window.",
   },
   {
-    icon: <Lightning size={32} className="text-zinc-900" />,
+    icon: <Lightning size={32} className="text-[#a855f7]" />,
     title: "2. Trigger Instant Deals",
     desc: "Click checkout while the product is live on screen. Our atomic engine handles stock allocations securely.",
   },
   {
-    icon: <ShieldCheck size={32} className="text-zinc-900" />,
+    icon: <ShieldCheck size={32} className="text-[#a855f7]" />,
     title: "3. Confirmed Orders",
     desc: "Transactions are processed asynchronously through RabbitMQ and updated instantly on the dashboards.",
   },
@@ -24,16 +24,16 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section className="w-full bg-zinc-100 py-24 border-b border-zinc-200">
+    <section className="w-full bg-[#0d0f14] py-24 border-b border-white/5">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <div className="mb-16 text-center max-w-xl mx-auto">
-          <span className="text-[10px] uppercase tracking-[0.25em] text-zinc-400 font-mono mb-3 block font-bold">
+          <span className="text-[10px] uppercase tracking-[0.25em] text-[#a855f7]/85 font-mono mb-3 block font-bold">
             Workflow Logic
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-950">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
             How LiveCommerce Operates
           </h2>
-          <p className="text-sm text-zinc-500 mt-4 leading-relaxed">
+          <p className="text-sm text-zinc-400 mt-4 leading-relaxed">
             A modular backend engine synchronized with real-time SSE stream events for an instantaneous shopping experience.
           </p>
         </div>
@@ -42,19 +42,19 @@ export function HowItWorks() {
           {STEPS.map((step, i) => (
             <motion.div
               key={i}
-              className="bg-white p-8 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-col items-center text-center gap-4 hover:shadow-md transition-shadow"
+              className="bg-[#1c2236]/30 p-8 rounded-2xl border border-white/5 shadow-md flex flex-col items-center text-center gap-4 hover:shadow-[0_0_24px_rgba(168,85,247,0.15)] hover:border-[#a855f7]/30 transition-all duration-300"
               initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
             >
-              <div className="w-16 h-16 rounded-full bg-zinc-50 flex items-center justify-center border border-zinc-100 shadow-sm">
+              <div className="w-16 h-16 rounded-full bg-[#a855f7]/15 flex items-center justify-center border border-[#a855f7]/35 shadow-[0_0_12px_rgba(168,85,247,0.15)]">
                 {step.icon}
               </div>
-              <h3 className="text-lg font-bold text-zinc-900 tracking-tight mt-2">
+              <h3 className="text-lg font-bold text-white tracking-tight mt-2">
                 {step.title}
               </h3>
-              <p className="text-xs text-zinc-500 leading-relaxed max-w-[30ch]">
+              <p className="text-xs text-zinc-400 leading-relaxed max-w-[30ch]">
                 {step.desc}
               </p>
             </motion.div>

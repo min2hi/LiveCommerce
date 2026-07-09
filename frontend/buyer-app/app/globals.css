@@ -6,6 +6,12 @@
   --color-zinc-100: #f4f4f5;
   --color-electric-blue: #0ea5e9;
   --color-emerald-accent: #10b981;
+  --color-lc-bg-primary: #0d0f14;
+  --color-lc-bg-elevated: #161b27;
+  --color-lc-bg-card: #1c2236;
+  --color-lc-accent: #a855f7;
+  --color-lc-signal: #06b6d4;
+  --color-lc-live: #ef4444;
 
   --font-geist: "Geist", system-ui, sans-serif;
   --font-geist-mono: "Geist Mono", monospace;
@@ -13,12 +19,12 @@
 
 @layer base {
   :root {
-    --background: #fdfdfd;
-    --foreground: #09090b;
-    --primary: #0ea5e9;
+    --background: #0d0f14;
+    --foreground: #f4f4f5;
+    --primary: #a855f7;
   }
 
-  /* The page has ONE theme. Buyer app defaults to light. */
+  /* The page has ONE theme. Buyer app defaults to dark now. */
   body {
     background-color: var(--background);
     color: var(--foreground);
@@ -30,6 +36,6 @@
 
 @layer utilities {
   .glassmorphism {
-    @apply backdrop-blur-md bg-white/5 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)];
+    @apply backdrop-blur-md bg-white/5 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)];
   }
 }
