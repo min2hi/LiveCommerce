@@ -5,6 +5,8 @@ import { CheckCircle, XCircle } from "@phosphor-icons/react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import { Magnetic } from "@/components/ui/magnetic";
+
 interface CheckoutButtonProps {
   productId: string;
 }
@@ -17,51 +19,7 @@ export function CheckoutButton({ productId }: CheckoutButtonProps) {
     let token = localStorage.getItem("buyer_token");
     if (token) return token;
 
-    console.log("[CheckoutButton] No token found. Auto-registering/logging in default buyer...");
-    const credentials = {
-      username: "buyer1",
-      email: "buyer1@livecommerce.com",
-      password: "password123",
-      role: "BUYER",
-    };
-
-    try {
-      // 1. Try to Login
-      const loginRes = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: credentials.email, password: credentials.password }),
-      });
-
-      if (loginRes.ok) {
-        const data = await loginRes.json();
-        localStorage.setItem("buyer_token", data.token);
-        return data.token;
-      }
-
-      // 2. If Login fails, Register first
-      const registerRes = await fetch("http://localhost:3000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-      });
-
-      if (registerRes.ok) {
-        // Log in again
-        const retryLoginRes = await fetch("http://localhost:3000/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: credentials.email, password: credentials.password }),
-        });
-        if (retryLoginRes.ok) {
-          const data = await retryLoginRes.json();
-          localStorage.setItem("buyer_token", data.token);
-          return data.token;
-        }
-      }
-    } catch (err) {
-      console.error("[CheckoutButton] Auth simulation failed:", err);
-    }
+    setErrorMsg("Active session token not found.");
     return null;
   };
 
@@ -120,48 +78,56 @@ export function CheckoutButton({ productId }: CheckoutButtonProps) {
     }, 3000);
   };
 
+  const buttonContent = (
+    <button
+      onClick={handleCheckout}
+      disabled={status === "loading" || status === "success"}
+      className={twMerge(
+        clsx(
+          "w-full h-11 inline-flex items-center justify-center whitespace-nowrap rounded-full font-mono text-[11px] font-bold uppercase tracking-widest transition-all duration-300 pointer-events-auto cursor-pointer",
+          "active:scale-[0.97] active:translate-y-[0.5px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 focus-visible:ring-offset-1 focus-visible:ring-offset-black",
+          {
+            "bg-white text-zinc-950 hover:bg-zinc-100": status === "idle",
+            "bg-zinc-900 text-transparent border border-zinc-800 pointer-events-none": status === "loading",
+            "bg-emerald-500 text-zinc-950 pointer-events-none shadow-[0_0_20px_rgba(16,185,129,0.2)]": status === "success",
+            "bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.2)]": status === "error" || status === "rate_limited",
+          }
+        )
+      )}
+    >
+      {status === "idle" && "Initiate Checkout"}
+      
+      {status === "loading" && (
+        <div className="absolute inset-0 flex items-center justify-center gap-1.5 px-6">
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-700 animate-pulse" style={{ animationDelay: "0ms" }}></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 animate-pulse" style={{ animationDelay: "150ms" }}></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-pulse" style={{ animationDelay: "300ms" }}></span>
+        </div>
+      )}
+      
+      {status === "success" && (
+        <span className="flex items-center gap-1.5">
+          <CheckCircle weight="bold" size={15} />
+          Order Confirmed
+        </span>
+      )}
+      
+      {(status === "error" || status === "rate_limited") && (
+        <span className="flex items-center gap-1.5">
+          <XCircle weight="bold" size={15} />
+          {errorMsg}
+        </span>
+      )}
+    </button>
+  );
+
   return (
     <div className="flex flex-col gap-2.5 w-full relative">
-      <button
-        onClick={handleCheckout}
-        disabled={status === "loading" || status === "success"}
-        className={twMerge(
-          clsx(
-            "w-full h-11 inline-flex items-center justify-center whitespace-nowrap rounded-full font-mono text-[11px] font-bold uppercase tracking-widest transition-all duration-300 pointer-events-auto cursor-pointer",
-            "active:scale-[0.97] active:translate-y-[0.5px] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 focus-visible:ring-offset-1 focus-visible:ring-offset-black",
-            {
-              "bg-white text-zinc-950 hover:bg-zinc-100": status === "idle",
-              "bg-zinc-900 text-transparent border border-zinc-800 pointer-events-none": status === "loading",
-              "bg-emerald-500 text-zinc-950 pointer-events-none shadow-[0_0_20px_rgba(16,185,129,0.2)]": status === "success",
-              "bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.2)]": status === "error" || status === "rate_limited",
-            }
-          )
-        )}
-      >
-        {status === "idle" && "Initiate Checkout"}
-        
-        {status === "loading" && (
-          <div className="absolute inset-0 flex items-center justify-center gap-1.5 px-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-zinc-700 animate-pulse" style={{ animationDelay: "0ms" }}></span>
-            <span className="w-1.5 h-1.5 rounded-full bg-zinc-600 animate-pulse" style={{ animationDelay: "150ms" }}></span>
-            <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-pulse" style={{ animationDelay: "300ms" }}></span>
-          </div>
-        )}
-        
-        {status === "success" && (
-          <span className="flex items-center gap-1.5">
-            <CheckCircle weight="bold" size={15} />
-            Order Confirmed
-          </span>
-        )}
-        
-        {(status === "error" || status === "rate_limited") && (
-          <span className="flex items-center gap-1.5">
-            <XCircle weight="bold" size={15} />
-            {errorMsg}
-          </span>
-        )}
-      </button>
+      {status === "idle" ? (
+        <Magnetic>{buttonContent}</Magnetic>
+      ) : (
+        buttonContent
+      )}
       
       {/* Refined error messages */}
       {(status === "error" || status === "rate_limited") && (

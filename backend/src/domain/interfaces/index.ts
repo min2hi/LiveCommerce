@@ -28,6 +28,9 @@ export interface IProductStore {
   findById(id: string): Promise<ProductEntity | null>;
   findByShopId(shopId: string): Promise<ProductEntity[]>;
   updateStock(id: string, delta: number): Promise<void>;
+  findAll(): Promise<ProductEntity[]>;
+  setStock(id: string, stock: number): Promise<void>;
+  setFlashSale(id: string, isFlashSale: boolean): Promise<void>;
 }
 
 // ── Order Store Interface ─────────────────────────────────────────────────

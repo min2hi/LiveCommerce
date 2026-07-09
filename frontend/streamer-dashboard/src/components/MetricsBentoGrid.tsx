@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { TrendUp, Users, ShoppingCart, WarningCircle } from "@phosphor-icons/react";
+import { TrendUp, Users, ShoppingCart, WarningCircle, Broadcast } from "@phosphor-icons/react";
 
 export function MetricsBentoGrid() {
   const [orders, setOrders] = useState(1482);
   const [revenue, setRevenue] = useState(44460);
   const [pulse, setPulse] = useState(false);
   const [recentSales, setRecentSales] = useState<{ id: number; item: string; time: string }[]>([]);
+  const [stock, setStock] = useState(14);
 
   const [token, setToken] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -35,10 +36,33 @@ export function MetricsBentoGrid() {
       setIsConnecting(true);
       setErrorMsg(null);
 
-      // Clear mockup values on real connection
-      setOrders(0);
-      setRevenue(0);
-      setRecentSales([]);
+      // Fetch initial metrics
+      fetch("http://localhost:3000/api/products/shop-metrics", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load initial metrics");
+        return res.json();
+      })
+      .then((data) => {
+        setOrders(data.totalOrders);
+        setRevenue(data.totalRevenue);
+        setStock(data.currentStock);
+        const mappedSales = data.recentSales.map((sale: any) => ({
+          id: sale.id,
+          item: `$${sale.totalPrice} (...${sale.id.substring(sale.id.length - 6).toUpperCase()})`,
+          time: new Date(sale.createdAt).toLocaleTimeString(),
+        }));
+        setRecentSales(mappedSales);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch initial telemetry stats:", err);
+        // Fallback to 0 if failed
+        setOrders(0);
+        setRevenue(0);
+        setRecentSales([]);
+        setStock(0);
+      });
 
       eventSource = new EventSource(`http://localhost:3000/api/sse/streamer?token=${token}`);
 
@@ -60,6 +84,7 @@ export function MetricsBentoGrid() {
           const payload = JSON.parse(e.data);
           setOrders((prev) => prev + 1);
           setRevenue((prev) => prev + (payload.totalPrice || 0));
+          setStock((prev) => Math.max(0, prev - (payload.quantity || 1)));
           setPulse(true);
           setTimeout(() => setPulse(false), 400);
 
@@ -95,6 +120,7 @@ export function MetricsBentoGrid() {
       if (Math.random() > 0.45) {
         setOrders((prev) => prev + 1);
         setRevenue((prev) => prev + 299);
+        setStock((prev) => Math.max(0, prev - 1));
         setPulse(true);
         setTimeout(() => setPulse(false), 400);
 
@@ -125,7 +151,7 @@ export function MetricsBentoGrid() {
         return;
       }
 
-      // 2. Register if login fails (likely user does not exist yet)
+      // 2. Register if login fails
       const registerRes = await fetch("http://localhost:3000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -173,16 +199,22 @@ export function MetricsBentoGrid() {
   };
 
   return (
-    <div className="w-full flex-1 p-6 md:p-10 overflow-y-auto bg-[#09090b]">
+    <div className="w-full flex-1 p-6 md:p-10 overflow-y-auto bg-[#09090b] relative">
+      {/* Background radial ambient lights for dark tech depth */}
+      <div className="absolute top-0 right-1/4 w-[350px] h-[350px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none"></div>
       
       {/* Header */}
-      <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-zinc-900 pb-6">
+      <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-zinc-900/60 pb-6 relative z-10">
         <div>
-          <h1 className="text-xl font-bold font-mono tracking-tight text-zinc-50 uppercase">
+          <div className="flex items-center gap-2 text-cyan-400 text-[10px] font-mono tracking-[0.2em] uppercase font-bold">
+            <Broadcast size={14} className="animate-pulse" />
+            Telemetry Console
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-50 mt-1">
             Live Stream Overview
           </h1>
           <p className="text-xs text-zinc-500 font-mono mt-1">
-            Telemetry console for "Premium Tech Flash Sale"
+            Node-telemetry cluster monitoring "Premium Tech Flash Sale"
           </p>
         </div>
         
@@ -195,115 +227,123 @@ export function MetricsBentoGrid() {
           
           {token ? (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/5 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-widest font-mono rounded">
-                <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 ${isConnected ? 'animate-pulse' : ''}`}></span>
-                {isConnected ? "Telemetry: Live" : "Connecting..."}
+              <div className="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/5 border border-emerald-500/10 text-emerald-400 text-[9px] font-bold uppercase tracking-wider font-mono rounded-full">
+                <span className={`w-1 h-1 rounded-full bg-emerald-500 ${isConnected ? 'animate-pulse' : ''}`}></span>
+                {isConnected ? "Telemetry: Active" : "Connecting..."}
               </div>
               <button 
                 onClick={handleDisconnect}
-                className="px-2.5 py-1 border border-zinc-800 hover:border-red-500/40 text-zinc-400 hover:text-red-400 text-[10px] font-mono uppercase rounded transition-colors"
+                className="px-3.5 py-1.5 border border-zinc-800 hover:border-red-500/40 text-zinc-400 hover:text-red-400 text-[9px] font-bold font-mono uppercase rounded-full transition-all active:scale-[0.98] cursor-pointer"
               >
                 Disconnect
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800/20 border border-zinc-800 text-zinc-500 text-[10px] font-bold uppercase tracking-widest font-mono rounded">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-700"></span>
-                Telemetry: Simulated
+              <div className="flex items-center gap-2 px-3.5 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-500 text-[9px] font-bold uppercase tracking-wider font-mono rounded-full">
+                <span className="w-1 h-1 rounded-full bg-zinc-700"></span>
+                Simulated Link
               </div>
               <button 
                 onClick={handleQuickAuth}
                 disabled={isConnecting}
-                className="px-3 py-1 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 hover:border-cyan-500 text-cyan-400 text-[10px] font-bold uppercase tracking-widest font-mono rounded transition-all active:scale-[0.98]"
+                className="px-4 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 hover:border-cyan-500/40 text-cyan-400 text-[9px] font-bold uppercase tracking-wider font-mono rounded-full transition-all active:scale-[0.98] cursor-pointer"
               >
-                {isConnecting ? "Connecting..." : "Connect Live"}
+                {isConnecting ? "Connecting..." : "Sync Live Node"}
               </button>
             </div>
           )}
         </div>
       </header>
 
-      {/* Cockpit Layout: High density 1px border grid, no generic background blocks */}
-      <div className="border border-zinc-900 rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-zinc-900">
+      {/* Cockpit Layout: High density 1px border grid */}
+      <div className="border border-zinc-900 rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-zinc-900 bg-black/20 backdrop-blur-md relative z-10">
         
         {/* Metric 1: Revenue */}
         <motion.div 
-          className="p-6 flex flex-col justify-between h-32 transition-colors duration-300 relative"
+          className="p-6 flex flex-col justify-between h-36 transition-colors duration-300 relative group"
           animate={{ backgroundColor: pulse ? "rgba(34, 211, 238, 0.04)" : "rgba(9, 9, 11, 0)" }}
         >
-          <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-wider text-zinc-500">
+          <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-wider text-zinc-500 font-bold">
             <span>Total Revenue</span>
-            <TrendUp size={16} className={pulse ? "text-neon-accent" : "text-zinc-600"} weight="bold" />
+            <TrendUp size={16} className={pulse ? "text-cyan-400" : "text-zinc-600 group-hover:text-zinc-400 transition-colors"} weight="bold" />
           </div>
-          <div className="flex items-baseline gap-2 mt-4">
+          <div className="flex flex-col gap-1 mt-4">
             <span className="text-3xl font-mono font-bold tracking-tight text-zinc-50">
               ${revenue.toLocaleString()}
             </span>
-            <span className="text-[10px] text-emerald-400 font-mono font-semibold">+12.4%</span>
+            <span className="text-[9px] text-emerald-400 font-mono font-bold uppercase tracking-wider mt-1">
+              +12.4% vs last interval
+            </span>
           </div>
         </motion.div>
 
         {/* Metric 2: Confirmed Orders */}
-        <div className="p-6 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-wider text-zinc-500">
+        <div className="p-6 flex flex-col justify-between h-36 group">
+          <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-wider text-zinc-500 font-bold">
             <span>Confirmed Orders</span>
-            <ShoppingCart size={16} className="text-zinc-600" weight="bold" />
+            <ShoppingCart size={16} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" weight="bold" />
           </div>
-          <div className="flex items-baseline gap-2 mt-4">
+          <div className="flex flex-col mt-4">
             <span className="text-3xl font-mono font-bold tracking-tight text-zinc-50">
               {orders.toLocaleString()}
+            </span>
+            <span className="text-[9px] text-zinc-600 font-mono font-bold uppercase tracking-wider mt-1">
+              Atomic transaction queue
             </span>
           </div>
         </div>
 
         {/* Metric 3: Concurrent Viewers */}
-        <div className="p-6 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-wider text-zinc-500">
+        <div className="p-6 flex flex-col justify-between h-36 group">
+          <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-wider text-zinc-500 font-bold">
             <span>Active Viewers</span>
-            <Users size={16} className="text-zinc-600" weight="bold" />
+            <Users size={16} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" weight="bold" />
           </div>
-          <div className="flex items-baseline gap-2 mt-4">
+          <div className="flex flex-col mt-4">
             <span className="text-3xl font-mono font-bold tracking-tight text-zinc-50">
               12,408
+            </span>
+            <span className="text-[9px] text-zinc-600 font-mono font-bold uppercase tracking-wider mt-1">
+              Active socket connections
             </span>
           </div>
         </div>
 
         {/* Metric 4: Stock Warning */}
-        <div className="p-6 flex flex-col justify-between h-32">
-          <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-wider text-zinc-500">
+        <div className="p-6 flex flex-col justify-between h-36 group">
+          <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-wider text-zinc-500 font-bold">
             <span>Inventory Alert</span>
-            <WarningCircle size={16} className="text-red-500/80" weight="bold" />
+            <WarningCircle size={16} className="text-red-500/80 group-hover:text-red-400 transition-colors" weight="bold" />
           </div>
-          <div className="flex items-center gap-3 mt-4">
-            <div className="flex flex-col">
-              <span className="text-xs font-mono font-bold text-red-500/90 uppercase tracking-wider">
-                Sony XM5
-              </span>
-              <span className="text-lg font-mono font-bold text-zinc-300 mt-0.5">
-                14 UNITS LEFT
-              </span>
-            </div>
+          <div className="flex flex-col mt-4">
+            <span className="text-lg font-mono font-bold text-red-500 uppercase tracking-widest leading-none">
+              {stock === 0 ? "OUT OF STOCK" : `${stock} UNITS LEFT`}
+            </span>
+            <span className="text-xs font-mono font-bold text-zinc-400 mt-1">
+              Product: Sony XM5
+            </span>
           </div>
         </div>
 
       </div>
-
       {/* Lower Section: Telemetry Log */}
-      <div className="mt-8 border border-zinc-900 rounded-lg overflow-hidden bg-[#09090b]">
+      <div className="mt-8 border border-zinc-900 rounded-2xl overflow-hidden bg-black/20 backdrop-blur-md relative z-10">
         
-        <div className="px-6 py-3 border-b border-zinc-900 flex justify-between items-center bg-[#0d0d11]">
-          <h3 className="text-xs font-bold font-mono tracking-wider text-zinc-400 uppercase">
-            Live Telemetry Stream
-          </h3>
-          <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
-            SSE Connection Stable
+        <div className="px-6 py-4 border-b border-zinc-900/60 flex justify-between items-center bg-[#0c0c0e]/40">
+          <div className="flex items-center gap-2">
+            <Broadcast size={14} className="text-zinc-500" />
+            <h3 className="text-xs font-bold font-mono tracking-widest text-zinc-400 uppercase">
+              Live Telemetry Stream
+            </h3>
+          </div>
+          <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest font-bold">
+            Node Feed Stable
           </span>
         </div>
 
-        <div className="p-2 min-h-[220px]">
-          <div className="flex flex-col gap-0.5">
+        <div className="p-4 min-h-[240px] max-h-[400px] overflow-y-auto">
+          <div className="flex flex-col gap-1">
             <AnimatePresence initial={false}>
               {recentSales.map((sale) => (
                 <motion.div
@@ -312,23 +352,25 @@ export function MetricsBentoGrid() {
                   animate={{ opacity: 1, x: 0, backgroundColor: "rgba(34, 211, 238, 0)" }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex justify-between items-center px-4 py-2 hover:bg-zinc-900/20 transition-colors rounded"
+                  className="flex justify-between items-center px-4 py-2.5 hover:bg-zinc-900/20 transition-all rounded-lg border border-transparent hover:border-zinc-900"
                 >
-                  <div className="flex items-center gap-3.5">
+                  <div className="flex items-center gap-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                    <span className="text-xs font-mono text-zinc-300 uppercase tracking-wider">
+                    <span className="text-xs font-mono text-zinc-300 uppercase tracking-wider font-semibold">
                       Order Confirmed: {sale.item}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-zinc-600">{sale.time}</span>
+                  <span className="text-[10px] font-mono text-zinc-500">{sale.time}</span>
                 </motion.div>
               ))}
             </AnimatePresence>
             
             {recentSales.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-48 text-zinc-600 font-mono text-xs gap-2 select-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-700 animate-ping"></span>
-                <span>AWAITING INCOMING TELEMETRY...</span>
+              <div className="flex flex-col items-center justify-center h-48 text-zinc-600 font-mono text-xs gap-3 select-none">
+                <span className="w-2 h-2 rounded-full bg-zinc-700 animate-ping"></span>
+                <span className="uppercase tracking-widest text-[10px] font-bold text-zinc-500">
+                  Awaiting incoming telemetry packets...
+                </span>
               </div>
             )}
           </div>

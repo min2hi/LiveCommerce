@@ -6,7 +6,7 @@ export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     username: string;
-    role: 'BUYER' | 'STREAMER';
+    role: 'BUYER' | 'STREAMER' | 'ADMIN';
     shopId?: string;
   };
 }
@@ -37,7 +37,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
     req.user = {
       id: decoded.id,
       username: decoded.username,
-      role: decoded.role.toUpperCase() as 'BUYER' | 'STREAMER',
+      role: decoded.role.toUpperCase() as 'BUYER' | 'STREAMER' | 'ADMIN',
       shopId: decoded.shopId,
     };
     next();
@@ -46,7 +46,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-export function roleGuard(roles: Array<'BUYER' | 'STREAMER'>) {
+export function roleGuard(roles: Array<'BUYER' | 'STREAMER' | 'ADMIN'>) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {
       res.status(403).json({ error: 'Forbidden: Insufficient privileges' });

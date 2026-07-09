@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "motion/react";
+import { Card3DHover } from "@/components/ui/card-3d-hover";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 
@@ -20,28 +21,17 @@ export function AsymmetricHero() {
   return (
     <section 
       ref={containerRef}
-      className="relative w-full overflow-hidden bg-[#fafafa] pt-24 md:pt-36 pb-24 border-b border-zinc-200/60"
+      className="relative w-full overflow-hidden bg-zinc-50 pt-28 pb-20 border-b border-zinc-200/50"
     >
       {/* Decorative clean background line to create editorial structure */}
-      <div className="absolute top-0 bottom-0 left-[8%] md:left-[12%] w-[1px] bg-zinc-200/50 hidden md:block"></div>
+      <div className="absolute top-0 bottom-0 left-[8%] md:left-[12%] w-[1px] bg-zinc-200/40 hidden md:block"></div>
       
       <div className="mx-auto max-w-7xl px-4 md:px-8 relative">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
           
-          {/* Column 1: Vertical Meta (2 cols on desktop) */}
-          <div className="hidden md:flex md:col-span-2 flex-col justify-between py-2 text-zinc-400 font-mono text-[10px] uppercase tracking-[0.25em]">
-            <div className="flex items-center gap-2 rotate-90 origin-left translate-x-3 translate-y-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>EST. 2026</span>
-            </div>
-            <div className="mt-auto">
-              <span>SCROLL / EXPLORE</span>
-            </div>
-          </div>
-
-          {/* Column 2: Headline & Content (6 cols on desktop) */}
-          <div className="md:col-span-6 flex flex-col justify-center pl-0 md:pl-6">
-            <span className="text-[10px] uppercase tracking-[0.22em] text-zinc-400 font-mono mb-8 block font-semibold">
+          {/* Column 2: Headline & Content (8 cols on desktop) */}
+          <div className="md:col-span-8 flex flex-col justify-center pl-0 md:pl-12">
+            <span className="text-[10px] uppercase tracking-[0.25em] text-zinc-400 font-mono mb-6 block font-bold">
               Live Commerce Edition
             </span>
 
@@ -57,7 +47,7 @@ export function AsymmetricHero() {
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
-              <Link href="/live/1" passHref className="w-full sm:w-auto">
+              <Link href="/live/cc9db567-1d5e-45a2-8544-c3a098f6718f" passHref className="w-full sm:w-auto">
                 <Button size="lg" className="w-full inline-flex items-center gap-2 group cursor-pointer">
                   Enter Live Rooms
                   <ArrowUpRight 
@@ -73,17 +63,19 @@ export function AsymmetricHero() {
           {/* Column 3: Parallax Media Container (4 cols on desktop) */}
           <div className="md:col-span-4 relative mt-8 md:mt-0 flex items-center justify-center">
             <motion.div
-              className="relative w-full aspect-[3/4] max-w-[340px] md:max-w-none rounded-2xl overflow-hidden bg-zinc-100 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-zinc-200/50"
               style={{ y: yTranslate }}
+              className="w-full max-w-[340px] md:max-w-none"
             >
-              <img
-                src="https://picsum.photos/seed/livecommerce-creative/800/1066"
-                alt="Minimalist designer showcasing tech stream"
-                className="w-full h-full object-cover grayscale transition-all duration-700 hover:grayscale-0 hover:scale-[1.01]"
-                loading="eager"
-              />
-              {/* Refractive overlay simulating a clean lens border */}
-              <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-2xl"></div>
+              <Card3DHover className="relative w-full aspect-[3/4] bg-zinc-100 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-zinc-200/50">
+                <img
+                  src="https://picsum.photos/seed/livecommerce-creative/800/1066"
+                  alt="Minimalist designer showcasing tech stream"
+                  className="w-full h-full object-cover grayscale transition-all duration-700 hover:grayscale-0 hover:scale-[1.01]"
+                  loading="eager"
+                />
+                {/* Refractive overlay simulating a clean lens border */}
+                <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-2xl"></div>
+              </Card3DHover>
             </motion.div>
           </div>
 

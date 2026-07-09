@@ -21,6 +21,8 @@ import { getCheckoutRouter } from '../../src/http/routes/checkout.routes';
 import { getSseRouter } from '../../src/http/routes/sse.routes';
 import { getAiRouter } from '../../src/http/routes/ai.routes';
 import { getKnowledgeRouter } from '../../src/http/routes/knowledge.routes';
+import { ProductController } from '../../src/http/controllers/product.controller';
+import { getProductRouter } from '../../src/http/routes/product.routes';
 import { AiController } from '../../src/http/controllers/ai.controller';
 import { broadcastShutdown, pushEventToShop } from '../../src/sse/sse-manager';
 import { createLogger } from '../../shared/logger';
@@ -168,6 +170,7 @@ async function bootstrap(): Promise<void> {
   );
   const sseController = new SseController();
   const aiController = new AiController();
+  const productController = new ProductController(productStore, stockStore, dbPool);
 
   // Register Routes
   app.use('/api/auth', getAuthRouter(authController));
@@ -175,6 +178,7 @@ async function bootstrap(): Promise<void> {
   app.use('/api/sse', getSseRouter(sseController));
   app.use('/api/ai', getAiRouter(aiController));
   app.use('/api/knowledge', getKnowledgeRouter(aiController));
+  app.use('/api/products', getProductRouter(productController));
 
   // Establish Redis Pub/Sub Subscriber for SSE events
   redisSubClient = redisClient.duplicate();

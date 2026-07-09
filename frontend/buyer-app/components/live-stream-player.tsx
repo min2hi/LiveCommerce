@@ -51,6 +51,33 @@ export function LiveStreamPlayer({ streamId }: LiveStreamPlayerProps) {
   ]);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
+  const [product, setProduct] = useState<{
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    stock: number;
+    isFlashSale: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchStock = () => {
+      fetch("http://localhost:3000/api/products")
+        .then((res) => res.json())
+        .then((data: any[]) => {
+          const found = data.find((p) => p.id === "d3b4a9cf-5a5d-47b0-b332-e6a7ea5af782" || p.isFlashSale);
+          if (found) {
+            setProduct(found);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch product:", err));
+    };
+
+    fetchStock();
+    const interval = setInterval(fetchStock, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const aiEndRef = useRef<HTMLDivElement>(null);
 
@@ -195,24 +222,24 @@ export function LiveStreamPlayer({ streamId }: LiveStreamPlayerProps) {
           </div>
           
           <div>
-            <h3 className="text-base font-bold text-white tracking-tight">Sony WH-1000XM5</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">Industry-leading noise canceling headphones</p>
+            <h3 className="text-base font-bold text-white tracking-tight">{product?.name || "Sony WH-1000XM5"}</h3>
+            <p className="text-xs text-zinc-400 mt-0.5">{product?.description || "Industry-leading noise canceling headphones"}</p>
           </div>
 
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-mono font-bold text-emerald-400">$299</span>
-            <span className="text-xs font-mono text-zinc-500 line-through">$398</span>
+            <span className="text-2xl font-mono font-bold text-emerald-400">${product?.price || 299}</span>
+            <span className="text-xs font-mono text-zinc-500 line-through">${(product?.price || 299) * 1.33 | 0}</span>
           </div>
 
           <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 border-t border-white/5 pt-2">
             <span className="flex items-center gap-1">
               <span className="w-1 h-1 rounded-full bg-red-500 animate-ping"></span>
-              STOCK: <span className="text-white font-semibold">100 LEFT</span>
+              STOCK: <span className="text-white font-semibold">{product ? (product.stock === 0 ? "OUT OF STOCK" : `${product.stock} LEFT`) : "100 LEFT"}</span>
             </span>
             <span>ENDS IN: <span className="text-white font-semibold">08:00</span></span>
           </div>
 
-          <CheckoutButton productId="d3b4a9cf-5a5d-47b0-b332-e6a7ea5af782" />
+          <CheckoutButton productId={product?.id || "d3b4a9cf-5a5d-47b0-b332-e6a7ea5af782"} />
         </motion.div>
 
         {/* Chat / AI Tabbed Panel */}

@@ -1,11 +1,17 @@
 import { Storefront, ChartLineUp, Package, ChatCircle, SignOut } from "@phosphor-icons/react";
 
-export function Sidebar() {
+interface SidebarProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+  onLogout: () => void;
+}
+
+export function Sidebar({ activeTab, onTabChange, onLogout }: SidebarProps) {
   const menuItems = [
-    { icon: <ChartLineUp weight="bold" size={18} />, label: "Dashboard", active: true },
-    { icon: <Storefront weight="bold" size={18} />, label: "Live Rooms", active: false },
-    { icon: <Package weight="bold" size={18} />, label: "Inventory", active: false },
-    { icon: <ChatCircle weight="bold" size={18} />, label: "AI Agent", active: false },
+    { icon: <ChartLineUp weight="bold" size={18} />, label: "Dashboard" },
+    { icon: <Storefront weight="bold" size={18} />, label: "Live Rooms" },
+    { icon: <Package weight="bold" size={18} />, label: "Inventory" },
+    { icon: <ChatCircle weight="bold" size={18} />, label: "AI Agent" },
   ];
 
   return (
@@ -22,32 +28,38 @@ export function Sidebar() {
           </span>
         </div>
         
-        {/* Navigation - Restyled to avoid standard full-color block shapes */}
+        {/* Navigation */}
         <nav className="flex flex-col gap-1 px-3">
-          {menuItems.map((item, i) => (
-            <button
-              key={i}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 w-full text-left relative focus:outline-none ${
-                item.active
-                  ? "text-neon-accent font-semibold"
-                  : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900/30"
-              }`}
-            >
-              {/* Refined vertical bar to indicate active state cleanly */}
-              {item.active && (
-                <span className="absolute left-0 top-2 bottom-2 w-[2px] bg-neon-accent rounded-full" />
-              )}
-              <span className="shrink-0">{item.icon}</span>
-              <span className="hidden md:block text-xs uppercase tracking-wider font-mono font-medium">
-                {item.label}
-              </span>
-            </button>
-          ))}
+          {menuItems.map((item, i) => {
+            const isActive = activeTab === item.label;
+            return (
+              <button
+                key={i}
+                onClick={() => onTabChange(item.label)}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 w-full text-left relative focus:outline-none cursor-pointer ${
+                  isActive
+                    ? "text-[#06b6d4] font-semibold bg-zinc-900/30"
+                    : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-900/30"
+                }`}
+              >
+                {isActive && (
+                  <span className="absolute left-0 top-2 bottom-2 w-[2px] bg-[#06b6d4] rounded-full" />
+                )}
+                <span className="shrink-0">{item.icon}</span>
+                <span className="hidden md:block text-xs uppercase tracking-wider font-mono font-medium">
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </nav>
       </div>
 
       <div className="px-3">
-        <button className="flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 w-full text-left text-zinc-600 hover:text-zinc-200 hover:bg-zinc-900/30">
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 w-full text-left text-zinc-600 hover:text-red-400 hover:bg-red-500/5 cursor-pointer focus:outline-none"
+        >
           <SignOut weight="bold" size={18} className="shrink-0" />
           <span className="hidden md:block text-xs uppercase tracking-wider font-mono font-medium">
             Log out

@@ -66,7 +66,7 @@ export function BentoGrid() {
 
             return (
               <Link
-                href="/live/1"
+                href="/live/cc9db567-1d5e-45a2-8544-c3a098f6718f"
                 key={room.id}
                 className={`${isHero ? "md:col-span-2" : "md:col-span-1"} block cursor-pointer`}
               >
