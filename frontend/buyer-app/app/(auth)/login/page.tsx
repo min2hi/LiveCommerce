@@ -53,7 +53,7 @@ export default function LoginPage() {
       
       {/* Ambient Breathing Background Mesh */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <Canvas3DBackground accent="emerald" />
+        <Canvas3DBackground accent="emerald" centerX={0.46} />
         <motion.div
           className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-emerald-500/10 blur-[120px]"
           animate={{

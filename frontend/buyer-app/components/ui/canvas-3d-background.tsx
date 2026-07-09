@@ -13,9 +13,11 @@ interface Node3D {
 
 interface Canvas3DBackgroundProps {
   accent?: "emerald" | "cyan" | "purple" | "none";
+  centerX?: number;
+  centerY?: number;
 }
 
-export function Canvas3DBackground({ accent = "none" }: Canvas3DBackgroundProps) {
+export function Canvas3DBackground({ accent = "none", centerX = 0.5, centerY = 0.5 }: Canvas3DBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: 0, y: 0, tx: 0, ty: 0, cx: -1000, cy: -1000 });
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -46,8 +48,8 @@ export function Canvas3DBackground({ accent = "none" }: Canvas3DBackgroundProps)
     // Track mouse coordinates
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      mouseRef.current.tx = (e.clientX - width / 2) * 0.12;
-      mouseRef.current.ty = (e.clientY - height / 2) * 0.12;
+      mouseRef.current.tx = (e.clientX - width * centerX) * 0.12;
+      mouseRef.current.ty = (e.clientY - height * centerY) * 0.12;
       mouseRef.current.cx = e.clientX - rect.left;
       mouseRef.current.cy = e.clientY - rect.top;
     };
@@ -138,8 +140,8 @@ export function Canvas3DBackground({ accent = "none" }: Canvas3DBackgroundProps)
 
         // Depth perspective projection calculation
         const scale = fov / (fov + z2 + 200);
-        const projX = x1 * scale + width / 2;
-        const projY = y2 * scale + height / 2;
+        const projX = x1 * scale + width * centerX;
+        const projY = y2 * scale + height * centerY;
 
         // Calculate magnetic physics pull (dodging/attraction)
         let pullX = 0;
@@ -257,7 +259,7 @@ export function Canvas3DBackground({ accent = "none" }: Canvas3DBackgroundProps)
         cancelAnimationFrame(animationId);
       }
     };
-  }, [accent, prefersReducedMotion]);
+  }, [accent, prefersReducedMotion, centerX, centerY]);
 
   return (
     <canvas

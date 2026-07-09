@@ -61,7 +61,7 @@ export default function RegisterPage() {
     <div className="min-h-[100dvh] flex bg-zinc-950 text-zinc-100 relative overflow-hidden font-sans">
       
       {/* Dynamic 3D Node Mesh Background */}
-      <Canvas3DBackground accent="cyan" />
+      <Canvas3DBackground accent="cyan" centerX={0.46} />
 
       {/* Ambient Breathing Background Mesh */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
