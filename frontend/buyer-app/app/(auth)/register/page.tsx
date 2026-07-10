@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Sparkle, User, Key, Envelope } from "@phosphor-icons/react";
+import { ArrowLeft, User, Key, Envelope } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Canvas3DBackground } from "@/components/ui/canvas-3d-background";
@@ -112,17 +112,17 @@ export default function RegisterPage() {
               Registration Portal
             </span>
             <h1 className="text-4xl lg:text-5xl font-bold tracking-tight leading-none text-white select-none">
-              Deploy.<br />
-              Observe.<br />
-              <span className="italic font-normal text-zinc-400">Acquire.</span>
+              Watch.<br />
+              Connect.<br />
+              <span className="italic font-normal text-zinc-400">Buy.</span>
             </h1>
             <p className="text-sm text-zinc-400 leading-relaxed">
-              Create a buyer endpoint node to secure immediate priority access to live room flash sales.
+              Create an account to join live stream rooms and shop featured deals instantly.
             </p>
           </div>
 
           <div className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">
-            LiveCommerce Platform - Secure Register Node
+            LiveCommerce Platform
           </div>
         </div>
 
@@ -148,11 +148,10 @@ export default function RegisterPage() {
           >
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-1.5 text-zinc-400 text-[10px] uppercase tracking-widest font-mono font-bold">
-                <Sparkle weight="fill" className="text-cyan-400" size={14} />
-                Deploy New Account
+                Join Platform
               </div>
               <h2 className="text-3xl font-bold tracking-tight text-white">Register</h2>
-              <p className="text-xs text-zinc-400">Generate credentials to sync with the commerce cluster.</p>
+              <p className="text-xs text-zinc-400">Register a new buyer account to start shopping.</p>
             </div>
 
             <form onSubmit={handleRegister} className="flex flex-col gap-4.5">
@@ -221,7 +220,7 @@ export default function RegisterPage() {
                   disabled={loading} 
                   className="w-full h-10.5 rounded-full font-mono text-[11px] font-bold uppercase tracking-widest bg-white text-zinc-950 hover:bg-zinc-200 transition-colors cursor-pointer"
                 >
-                  {loading ? "Deploying Node..." : "Register Port"}
+                  {loading ? "Creating Account..." : "Create Account"}
                 </Button>
               </motion.div>
             </form>
@@ -229,7 +228,7 @@ export default function RegisterPage() {
             <p className="text-center text-xs text-zinc-400">
               Already registered?{" "}
               <Link href="/login" className="font-semibold text-cyan-400 hover:text-cyan-300 transition-colors hover:underline">
-                Initialize session
+                Sign In
               </Link>
             </p>
           </motion.div>

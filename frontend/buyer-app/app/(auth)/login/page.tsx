@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Sparkle, Key, Envelope } from "@phosphor-icons/react";
+import { ArrowLeft, Key, Envelope } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Canvas3DBackground } from "@/components/ui/canvas-3d-background";
@@ -18,7 +18,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setErrorMsg("Please fill in all security parameters.");
+      setErrorMsg("Please fill in all fields.");
       return;
     }
 
@@ -42,7 +42,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error("[Login] Connection failed:", err);
-      setErrorMsg("Internal telemetry connection failed.");
+      setErrorMsg("Connection failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ export default function LoginPage() {
           </div>
 
           <div className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest">
-            LiveCommerce Platform - Secure Auth Node
+            LiveCommerce Platform
           </div>
         </div>
 
@@ -137,11 +137,10 @@ export default function LoginPage() {
           >
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-1.5 text-zinc-400 text-[10px] uppercase tracking-widest font-mono font-bold">
-                <Sparkle weight="fill" className="text-emerald-400" size={14} />
-                Secure Node Connection
+                Account Access
               </div>
               <h2 className="text-3xl font-bold tracking-tight text-white">Login</h2>
-              <p className="text-xs text-zinc-400">Authenticate credentials to establish live session.</p>
+              <p className="text-xs text-zinc-400">Sign in to access live streams and shops.</p>
             </div>
 
             <form onSubmit={handleLogin} className="flex flex-col gap-5">
@@ -194,15 +193,15 @@ export default function LoginPage() {
                   disabled={loading} 
                   className="w-full h-11 rounded-full font-mono text-[11px] font-bold uppercase tracking-widest bg-white text-zinc-950 hover:bg-zinc-200 transition-colors cursor-pointer"
                 >
-                  {loading ? "Establishing..." : "Connect Session"}
+                  {loading ? "Signing In..." : "Sign In"}
                 </Button>
               </motion.div>
             </form>
 
             <p className="text-center text-xs text-zinc-400">
-              New node?{" "}
+              New user?{" "}
               <Link href="/register" className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors hover:underline">
-                Register port
+                Create an account
               </Link>
             </p>
           </motion.div>

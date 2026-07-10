@@ -65,14 +65,14 @@ export function Navbar() {
           <div className="flex items-center gap-3">
             <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#a855f7]/10 border border-[#a855f7]/20 text-[#c084fc] text-[9px] font-bold uppercase tracking-wider font-mono rounded-full shadow-[0_0_8px_rgba(168,85,247,0.1)]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#a855f7] animate-pulse"></span>
-              Synchronized
+              Connected
             </span>
             <Magnetic range={30}>
               <button
                 onClick={handleLogout}
                 className="px-3 py-1.5 bg-white text-zinc-950 rounded-full font-mono text-[9px] font-bold uppercase tracking-widest hover:bg-zinc-200 transition-colors active:scale-95 cursor-pointer shadow-sm"
               >
-                Disconnect
+                Logout
               </button>
             </Magnetic>
           </div>
@@ -84,7 +84,7 @@ export function Navbar() {
                 whileTap={{ scale: 0.98 }}
                 className="px-4 py-1.5 bg-[#a855f7] text-[#0d0f14] rounded-full font-mono text-[9px] font-bold uppercase tracking-widest hover:bg-[#b55fe6] transition-colors cursor-pointer shadow-[0_0_12px_rgba(168,85,247,0.3)]"
               >
-                Connect Session
+                Sign In
               </motion.button>
             </Magnetic>
           </Link>

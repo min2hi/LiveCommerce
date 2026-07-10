@@ -8,18 +8,18 @@ import { Magnetic } from "@/components/ui/magnetic";
 const STEPS = [
   {
     icon: <PlayCircle size={32} className="text-[#a855f7]" />,
-    title: "Join Live Rooms",
-    desc: "Browse featured channels and enter zero-latency stream rooms directly in your browser window.",
+    title: "Join Live Streams",
+    desc: "Browse active streams and enter live interactive video rooms directly in your browser.",
   },
   {
     icon: <Lightning size={32} className="text-[#a855f7]" />,
-    title: "Trigger Instant Deals",
-    desc: "Click checkout while the product is live on screen. Our atomic engine handles stock allocations securely.",
+    title: "Buy Instantly",
+    desc: "Click checkout while products are featured live on screen. No delays, no cart hassle.",
   },
   {
     icon: <ShieldCheck size={32} className="text-[#a855f7]" />,
-    title: "Confirmed Orders",
-    desc: "Transactions are processed asynchronously through RabbitMQ and updated instantly on the dashboards.",
+    title: "Secure Checkout",
+    desc: "Complete your order with secure, lightning-fast payment processing and instant confirmation.",
   },
 ];
 
@@ -28,14 +28,11 @@ export function HowItWorks() {
     <section className="w-full bg-[#0d0f14] py-24 border-b border-white/5 relative z-20">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <div className="mb-16 text-center max-w-xl mx-auto">
-          <span className="text-[10px] uppercase tracking-[0.25em] text-[#a855f7]/85 font-mono mb-3 block font-bold">
-            Workflow Logic
-          </span>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
-            How LiveCommerce Operates
+            How LiveCommerce Works
           </h2>
           <p className="text-sm text-zinc-400 mt-4 leading-relaxed">
-            A modular backend engine synchronized with real-time SSE stream events for an instantaneous shopping experience.
+            Join live streams, interact in real time, and check out instantly.
           </p>
         </div>
 

@@ -119,7 +119,7 @@ export function AsymmetricHero() {
               className="text-base text-zinc-400 leading-relaxed max-w-[42ch] mb-12 font-normal"
               variants={itemVariants}
             >
-              Experience zero-latency video streams, instant interactive chats, and atomic checkout options. Directly in your browser.
+              Experience high-definition video streams, real-time interactive chats, and seamless instant checkouts. Directly in your browser.
             </motion.p>
 
             <motion.div className="flex flex-wrap items-center gap-4" variants={itemVariants}>
