@@ -26,7 +26,8 @@
     "shared/**/*",
     "tests/**/*",
     "scratch/**/*",
-    "seed-test-data.ts"
+    "seed-test-data.ts",
+    "seed-auction.ts"
   ],
   "exclude": ["node_modules", "dist", "cmd", "internal", "pkg"]
 }

@@ -9,7 +9,7 @@
   --color-lc-bg-primary: #0d0f14;
   --color-lc-bg-elevated: #161b27;
   --color-lc-bg-card: #1c2236;
-  --color-lc-accent: #a855f7;
+  --color-lc-accent: #06b6d4;
   --color-lc-signal: #06b6d4;
   --color-lc-live: #ef4444;
 
@@ -21,7 +21,7 @@
   :root {
     --background: #0d0f14;
     --foreground: #f4f4f5;
-    --primary: #a855f7;
+    --primary: #06b6d4;
   }
 
   /* The page has ONE theme. Buyer app defaults to dark now. */

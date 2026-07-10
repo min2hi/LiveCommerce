@@ -12,6 +12,10 @@ import type {
   OrderEntity,
   KnowledgeDocEntity,
   OrderPendingEvent,
+  LivestreamEntity,
+  ScheduledStreamEntity,
+  AuctionEntity,
+  AuctionBidEntity,
 } from '../entities';
 
 // ── User Store Interface ───────────────────────────────────────────────────
@@ -79,6 +83,23 @@ export interface IKnowledgeStore {
   ): Promise<KnowledgeDocEntity[]>;
 }
 
+// ── Livestream Store Interface ─────────────────────────────────────────────
+
+export interface ILivestreamStore {
+  create(
+    data: Omit<
+      LivestreamEntity,
+      'id' | 'createdAt' | 'updatedAt' | 'viewers' | 'status' | 'endedAt'
+    >,
+  ): Promise<LivestreamEntity>;
+  findById(id: string): Promise<LivestreamEntity | null>;
+  findByStreamKey(streamKey: string): Promise<LivestreamEntity | null>;
+  findByShopId(shopId: string): Promise<LivestreamEntity[]>;
+  findActive(): Promise<LivestreamEntity[]>;
+  updateStatus(id: string, status: LivestreamEntity['status'], endedAt?: Date): Promise<void>;
+  updateViewers(id: string, viewers: number): Promise<void>;
+}
+
 // ── Idempotency Store Interface (Redis) ──────────────────────────────────
 
 export interface IIdempotencyStore {
@@ -92,4 +113,37 @@ export interface IIdempotencyStore {
 export interface IOrderQueue {
   publish(event: OrderPendingEvent): Promise<boolean>;
   consume(handler: (event: OrderPendingEvent) => Promise<void>): Promise<void>;
+}
+
+// ── Scheduled Stream Store Interface ───────────────────────────────────────
+
+export interface IScheduledStreamStore {
+  create(
+    data: Omit<ScheduledStreamEntity, 'id' | 'createdAt' | 'updatedAt' | 'status'>,
+  ): Promise<ScheduledStreamEntity>;
+  findById(id: string): Promise<ScheduledStreamEntity | null>;
+  findUpcoming(): Promise<ScheduledStreamEntity[]>;
+  findByShopId(shopId: string): Promise<ScheduledStreamEntity[]>;
+  addReminder(streamId: string, userId: string): Promise<void>;
+  removeReminder(streamId: string, userId: string): Promise<void>;
+  getReminders(streamId: string): Promise<string[]>; // returns userIds
+  isReminderSet(streamId: string, userId: string): Promise<boolean>;
+}
+
+// ── Auction Store Interface ────────────────────────────────────────────────
+
+export interface IAuctionStore {
+  create(
+    data: Omit<
+      AuctionEntity,
+      'id' | 'status' | 'startedAt' | 'endedAt' | 'winnerId' | 'createdAt' | 'updatedAt'
+    >,
+  ): Promise<AuctionEntity>;
+  findById(id: string): Promise<AuctionEntity | null>;
+  findActiveByShopId(shopId: string): Promise<AuctionEntity | null>;
+  updateStatus(id: string, status: AuctionEntity['status']): Promise<void>;
+  placeBid(auctionId: string, userId: string, amount: number): Promise<AuctionBidEntity>;
+  getHighestBid(auctionId: string): Promise<AuctionBidEntity | null>;
+  getBids(auctionId: string, limit?: number): Promise<AuctionBidEntity[]>;
+  endAuction(id: string, winnerId?: string): Promise<void>;
 }

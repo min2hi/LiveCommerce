@@ -6,9 +6,10 @@ import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 interface Card3DHoverProps {
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
-export function Card3DHover({ children, className }: Card3DHoverProps) {
+export function Card3DHover({ children, className, onClick }: Card3DHoverProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const x = useMotionValue(0);
@@ -48,6 +49,7 @@ export function Card3DHover({ children, className }: Card3DHoverProps) {
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
       style={{
         rotateX,
         rotateY,

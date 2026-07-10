@@ -34,7 +34,7 @@ export function StreamerLoginPage({ onLoginSuccess }: StreamerLoginPageProps) {
         
         // Decode token to verify role
         const payload = JSON.parse(atob(data.token.split(".")[1]));
-        if (payload.role !== "STREAMER") {
+        if (payload.role.toUpperCase() !== "STREAMER") {
           setErrorMsg("Access Denied: Account does not possess streamer role.");
           return;
         }

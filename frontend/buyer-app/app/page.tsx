@@ -5,6 +5,7 @@ import { BentoGrid } from '@/components/grid/bento-grid';
 import { StatsBar } from '@/components/sections/stats-bar';
 import { HowItWorks } from '@/components/sections/how-it-works';
 import { Canvas3DBackground } from '@/components/ui/canvas-3d-background';
+import { UpcomingStreams } from '@/components/sections/upcoming-streams';
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
         <Navbar />
         <AsymmetricHero />
         <StatsBar />
+        <UpcomingStreams />
         <BentoGrid />
         <HowItWorks />
       </div>

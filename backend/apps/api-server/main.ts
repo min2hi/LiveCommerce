@@ -24,6 +24,16 @@ import { getKnowledgeRouter } from '../../src/http/routes/knowledge.routes';
 import { ProductController } from '../../src/http/controllers/product.controller';
 import { getProductRouter } from '../../src/http/routes/product.routes';
 import { AiController } from '../../src/http/controllers/ai.controller';
+import { LivestreamStore } from '../../src/stores/postgres/livestream.store';
+import { LivestreamController } from '../../src/http/controllers/livestream.controller';
+import { getLivestreamRouter } from '../../src/http/routes/livestream.routes';
+import { ScheduledStreamStore } from '../../src/stores/postgres/scheduled-stream.store';
+import { ScheduledStreamController } from '../../src/http/controllers/scheduled-stream.controller';
+import { getScheduledStreamRouter } from '../../src/http/routes/scheduled-stream.routes';
+import { AuctionStore } from '../../src/stores/postgres/auction.store';
+import { AuctionController } from '../../src/http/controllers/auction.controller';
+import { getAuctionRouter } from '../../src/http/routes/auction.routes';
+
 import { broadcastShutdown, pushEventToShop } from '../../src/sse/sse-manager';
 import { createLogger } from '../../shared/logger';
 
@@ -158,6 +168,9 @@ async function bootstrap(): Promise<void> {
   const stockStore = new StockStore(redisClient);
   const idempotencyStore = new IdempotencyStore(redisClient);
   const orderQueue = new OrderQueue(rabbitChannel);
+  const livestreamStore = new LivestreamStore(dbPool);
+  const scheduledStreamStore = new ScheduledStreamStore(dbPool);
+  const auctionStore = new AuctionStore(dbPool);
 
   // Instantiate Controllers
   const authController = new AuthController(userStore, dbPool);
@@ -171,6 +184,9 @@ async function bootstrap(): Promise<void> {
   const sseController = new SseController();
   const aiController = new AiController();
   const productController = new ProductController(productStore, stockStore, dbPool);
+  const livestreamController = new LivestreamController(livestreamStore);
+  const scheduledStreamController = new ScheduledStreamController(scheduledStreamStore);
+  const auctionController = new AuctionController(auctionStore);
 
   // Register Routes
   app.use('/api/auth', getAuthRouter(authController));
@@ -179,6 +195,9 @@ async function bootstrap(): Promise<void> {
   app.use('/api/ai', getAiRouter(aiController));
   app.use('/api/knowledge', getKnowledgeRouter(aiController));
   app.use('/api/products', getProductRouter(productController));
+  app.use('/api/livestreams', getLivestreamRouter(livestreamController));
+  app.use('/api/scheduled-streams', getScheduledStreamRouter(scheduledStreamController));
+  app.use('/api/auctions', getAuctionRouter(auctionController));
 
   // Establish Redis Pub/Sub Subscriber for SSE events
   redisSubClient = redisClient.duplicate();

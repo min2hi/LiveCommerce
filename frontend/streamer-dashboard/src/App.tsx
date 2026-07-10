@@ -9,6 +9,100 @@ export default function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("streamer_token"));
   const [activeTab, setActiveTab] = useState<string>("Dashboard");
 
+  // Extract shopId from token
+  const getShopIdFromToken = (tok: string | null) => {
+    if (!tok) return null;
+    try {
+      const payload = JSON.parse(atob(tok.split(".")[1]));
+      return payload.shopId || null;
+    } catch {
+      return null;
+    }
+  };
+  const shopId = getShopIdFromToken(token);
+
+  // Livestream states
+  const [streamSession, setStreamSession] = useState<any>(null);
+  const [newStreamTitle, setNewStreamTitle] = useState("Premium Mech Keyboard Showcase & Drop");
+  const [isStarting, setIsStarting] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
+  const [streamError, setStreamError] = useState("");
+
+  // Check for existing active livestream session for this shop
+  useEffect(() => {
+    if (!token || !shopId) return;
+    const checkActiveSession = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/livestreams/active");
+        if (res.ok) {
+          const activeStreams = await res.json();
+          const myActive = activeStreams.find((s: any) => s.shopId === shopId);
+          if (myActive) {
+            setStreamSession(myActive);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check active livestream session", err);
+      }
+    };
+    checkActiveSession();
+  }, [token, shopId]);
+
+  const handleStartStream = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStreamTitle.trim()) {
+      setStreamError("Title is required");
+      return;
+    }
+    setIsStarting(true);
+    setStreamError("");
+    try {
+      const res = await fetch("http://localhost:3000/api/livestreams/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title: newStreamTitle }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStreamSession(data);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setStreamError(errData.error || "Failed to start livestream session");
+      }
+    } catch (err) {
+      setStreamError("Failed to connect to media gateway server");
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
+  const handleEndStream = async () => {
+    if (!streamSession) return;
+    setIsEnding(true);
+    setStreamError("");
+    try {
+      const res = await fetch(`http://localhost:3000/api/livestreams/${streamSession.id}/end`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        setStreamSession(null);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setStreamError(errData.error || "Failed to end livestream session");
+      }
+    } catch (err) {
+      setStreamError("Failed to connect to media gateway server");
+    } finally {
+      setIsEnding(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("streamer_token");
     setToken(null);
@@ -64,32 +158,68 @@ export default function App() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* RTMP Credentials */}
-                <div className="bg-[#09090b] border border-zinc-900 p-6 rounded-2xl flex flex-col gap-4">
-                  <span className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-900 pb-2">Stream Server Credentials</span>
-                  
-                  {[
-                    { key: "RTMP Server URL", val: "rtmp://localhost:1935/live" },
-                    { key: "Stream Key", val: "cc9db567-1d5e-45a2-8544-c3a098f6718f" }
-                  ].map((cred, idx) => (
-                    <div key={idx} className="flex flex-col gap-2">
-                      <span className="text-[10px] font-bold font-mono text-zinc-500 uppercase tracking-wider">{cred.key}</span>
-                      <div className="flex gap-2">
+                {!streamSession ? (
+                  <div className="bg-[#09090b] border border-zinc-900 p-6 rounded-2xl flex flex-col gap-4">
+                    <span className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-900 pb-2">Start Stream Session</span>
+                    <form onSubmit={handleStartStream} className="flex flex-col gap-4 mt-2">
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor="stream-title-input" className="text-[10px] font-bold font-mono text-zinc-500 uppercase tracking-wider">Broadcast Title</label>
                         <input 
+                          id="stream-title-input"
                           type="text" 
-                          readOnly 
-                          value={cred.val} 
-                          className="flex-1 bg-black/60 border border-zinc-900 rounded-lg px-3 py-2 text-xs font-mono text-zinc-300 focus:outline-none"
+                          value={newStreamTitle}
+                          onChange={(e) => setNewStreamTitle(e.target.value)}
+                          placeholder="Enter livestream title..."
+                          className="bg-black/60 border border-zinc-900 rounded-lg px-3 py-2 text-xs font-mono text-zinc-300 focus:outline-none"
                         />
-                        <button 
-                          onClick={() => navigator.clipboard.writeText(cred.val)}
-                          className="px-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 rounded-lg transition-colors active:scale-95 cursor-pointer flex items-center justify-center"
-                        >
-                          <Copy size={14} />
-                        </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                      {streamError && <span className="text-xs font-mono text-red-500">{streamError}</span>}
+                      <button 
+                        type="submit"
+                        disabled={isStarting}
+                        className="h-10 bg-[#06b6d4] hover:bg-[#0891b2] text-zinc-950 font-bold text-xs uppercase font-mono rounded-lg transition-colors cursor-pointer"
+                      >
+                        {isStarting ? "Initializing Node..." : "Start Broadcast Node"}
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="bg-[#09090b] border border-zinc-900 p-6 rounded-2xl flex flex-col gap-4">
+                    <span className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-900 pb-2">Stream Server Credentials</span>
+                    
+                    {[
+                      { key: "RTMP Server URL", val: "rtmp://localhost:1935/live" },
+                      { key: "Stream Key", val: streamSession.streamKey }
+                    ].map((cred, idx) => (
+                      <div key={idx} className="flex flex-col gap-2">
+                        <span className="text-[10px] font-bold font-mono text-zinc-500 uppercase tracking-wider">{cred.key}</span>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            readOnly 
+                            value={cred.val} 
+                            className="flex-1 bg-black/60 border border-zinc-900 rounded-lg px-3 py-2 text-xs font-mono text-zinc-300 focus:outline-none"
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => navigator.clipboard.writeText(cred.val)}
+                            className="px-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 rounded-lg transition-colors active:scale-95 cursor-pointer flex items-center justify-center"
+                          >
+                            <Copy size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {streamError && <span className="text-xs font-mono text-red-500">{streamError}</span>}
+                    <button 
+                      onClick={handleEndStream}
+                      disabled={isEnding}
+                      className="h-10 bg-red-500 hover:bg-red-600 text-white font-bold text-xs uppercase font-mono rounded-lg transition-colors cursor-pointer mt-2"
+                    >
+                      {isEnding ? "Stopping Node..." : "Stop Broadcast Node"}
+                    </button>
+                  </div>
+                )}
 
                 {/* RTMP Diagnostic */}
                 <div className="bg-[#09090b] border border-zinc-900 p-6 rounded-2xl flex flex-col gap-4">
@@ -98,19 +228,23 @@ export default function App() {
                   <div className="flex flex-col gap-3 font-mono text-xs">
                     <div className="flex justify-between">
                       <span className="text-zinc-500">Stream Status</span>
-                      <span className="font-bold text-[#06b6d4] flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4] animate-pulse"></span>ACTIVE</span>
+                      {streamSession ? (
+                        <span className="font-bold text-[#06b6d4] flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4] animate-pulse"></span>ACTIVE</span>
+                      ) : (
+                        <span className="font-bold text-zinc-500 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-zinc-650"></span>STANDBY</span>
+                      )}
                     </div>
                     <div className="flex justify-between">
                       <span className="text-zinc-500">Active Bitrate</span>
-                      <span className="font-bold text-zinc-300">4,820 kbps (Stable)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-zinc-500">Stream Duration</span>
-                      <span className="font-bold text-zinc-300">01:42:15</span>
+                      <span className="font-bold text-zinc-300">{streamSession ? "4,820 kbps (Stable)" : "0 kbps"}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-zinc-500">Resolution</span>
-                      <span className="font-bold text-zinc-300">1080p60 (Source)</span>
+                      <span className="font-bold text-zinc-300">{streamSession ? "1080p60 (Source)" : "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Viewers Counter</span>
+                      <span className="font-bold text-zinc-300">{streamSession ? streamSession.viewers : 0}</span>
                     </div>
                   </div>
                 </div>
@@ -241,7 +375,7 @@ function StreamerInventory() {
   return (
     <div className="flex flex-col gap-4">
       {errorMsg && (
-        <div className="text-[10px] font-mono text-red-500 flex items-center gap-1.5 uppercase bg-red-950/20 p-3 border border-red-900/50 rounded-xl">
+        <div className="text-[10px] font-mono text-red-500 flex items-center gap-1.5 uppercase bg-red-950/20 p-3 border border-red-900/55 rounded-xl">
           <Warning size={14} weight="bold" />
           {errorMsg}
         </div>

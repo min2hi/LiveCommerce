@@ -92,6 +92,51 @@ async function seed() {
     console.log(`✅ Redis stock initialized to 100 for key: ${stockKey}`);
     console.log(`✅ Redis buyers set cleared for key: ${buyersKey}`);
 
+    // 5. Seed Scheduled Streams
+    await pool.query('DELETE FROM scheduled_streams');
+    const scheduledStreams = [
+      {
+        title: 'Tech Talk Live: Next-Gen Smart Home Setup',
+        description:
+          'Discover the latest automation gadgets and premium home integration with 20% off!',
+        scheduled_time: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
+        banner_url: 'https://picsum.photos/seed/smarthome/600/400',
+      },
+      {
+        title: 'Beauty Hacks with Linda: Glow Skin Secret Deals',
+        description: 'Linda showcases organic skincare products and exclusive bundle packages.',
+        scheduled_time: new Date(Date.now() + 5 * 60 * 60 * 1000), // 5 hours from now
+        banner_url: 'https://picsum.photos/seed/beauty/600/400',
+      },
+      {
+        title: 'Unboxing RTX 5090 Showcase & Benchmarks',
+        description: 'Live testing, gaming benchmarks, and flash sales for limited RTX cards.',
+        scheduled_time: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day from now
+        banner_url: 'https://picsum.photos/seed/rtx5090/600/400',
+      },
+      {
+        title: 'Mechanical Keyboard Build with KeyCrafters',
+        description: 'Building custom typing sound profiles and giving away stabilizers.',
+        scheduled_time: new Date(Date.now() + 48 * 60 * 60 * 1000), // 2 days from now
+        banner_url: 'https://picsum.photos/seed/keyboard/600/400',
+      },
+      {
+        title: 'Premium Audio Show: Headphone Shootout!',
+        description: 'Comparing Sony WH-1000XM5, Bose Ultra, and Apple AirPods Max live.',
+        scheduled_time: new Date(Date.now() + 72 * 60 * 60 * 1000), // 3 days from now
+        banner_url: 'https://picsum.photos/seed/headphones/600/400',
+      },
+    ];
+
+    for (const s of scheduledStreams) {
+      await pool.query(
+        `INSERT INTO scheduled_streams (shop_id, title, description, scheduled_time, banner_url, status)
+         VALUES ($1, $2, $3, $4, $5, 'UPCOMING')`,
+        [shopId, s.title, s.description, s.scheduled_time, s.banner_url],
+      );
+    }
+    console.log('✅ Seeded 5 upcoming scheduled streams');
+
     console.log('\n🎉 Seed completed successfully!');
     console.log(`Use Product ID: ${targetProductId}`);
   } catch (err: any) {

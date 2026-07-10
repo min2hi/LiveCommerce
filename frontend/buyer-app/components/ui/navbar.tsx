@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Storefront, ChartLineUp } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 
 import { Magnetic } from "@/components/ui/magnetic";
@@ -25,7 +24,7 @@ export function Navbar() {
   };
 
   return (
-    <motion.header 
+    <motion.header
       className="fixed top-5 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl h-14 bg-[#0d0f14]/85 border border-white/10 backdrop-blur-md rounded-full z-50 flex items-center justify-between px-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -33,7 +32,7 @@ export function Navbar() {
     >
       {/* Brand logo */}
       <Link href="/" className="flex items-center gap-2 group">
-        <div className="w-7 h-7 rounded-full bg-[#a855f7] flex items-center justify-center text-[#0d0f14] font-bold text-[10px] font-mono transition-transform group-hover:scale-105 active:scale-95 shadow-[0_0_12px_rgba(168,85,247,0.4)]">
+        <div className="w-7 h-7 rounded-full bg-cyan-500 flex items-center justify-center text-[#0d0f14] font-bold text-[10px] font-mono transition-transform group-hover:scale-105 active:scale-95 shadow-[0_0_12px_rgba(6,182,212,0.4)]">
           LC
         </div>
         <span className="font-bold text-xs uppercase tracking-widest text-white font-mono">
@@ -43,18 +42,16 @@ export function Navbar() {
 
       {/* Nav links */}
       <nav className="hidden sm:flex items-center gap-6">
-        <Link 
-          href="/live/cc9db567-1d5e-45a2-8544-c3a098f6718f" 
-          className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-400 hover:text-[#a855f7] transition-colors flex items-center gap-1.5"
+        <Link
+          href="/live/cc9db567-1d5e-45a2-8544-c3a098f6718f"
+          className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-400 hover:text-cyan-400 transition-colors"
         >
-          <Storefront size={13} weight="bold" />
           Live Rooms
         </Link>
-        <a 
-          href="#deals" 
-          className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-400 hover:text-[#a855f7] transition-colors flex items-center gap-1.5"
+        <a
+          href="/#trending-deals"
+          className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-400 hover:text-cyan-400 transition-colors"
         >
-          <ChartLineUp size={13} weight="bold" />
           Trending Deals
         </a>
       </nav>
@@ -63,8 +60,8 @@ export function Navbar() {
       <div className="flex items-center gap-3">
         {hasToken ? (
           <div className="flex items-center gap-3">
-            <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#a855f7]/10 border border-[#a855f7]/20 text-[#c084fc] text-[9px] font-bold uppercase tracking-wider font-mono rounded-full shadow-[0_0_8px_rgba(168,85,247,0.1)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#a855f7] animate-pulse"></span>
+            <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[9px] font-bold uppercase tracking-wider font-mono rounded-full shadow-[0_0_8px_rgba(6,182,212,0.1)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
               Connected
             </span>
             <Magnetic range={30}>
@@ -82,7 +79,7 @@ export function Navbar() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-4 py-1.5 bg-[#a855f7] text-[#0d0f14] rounded-full font-mono text-[9px] font-bold uppercase tracking-widest hover:bg-[#b55fe6] transition-colors cursor-pointer shadow-[0_0_12px_rgba(168,85,247,0.3)]"
+                className="px-4 py-1.5 bg-cyan-500 text-zinc-950 rounded-full font-mono text-[9px] font-bold uppercase tracking-widest hover:bg-cyan-400 transition-colors cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.3)]"
               >
                 Sign In
               </motion.button>
