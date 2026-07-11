@@ -161,9 +161,34 @@ describe('LivestreamController', () => {
       expect(resStatus).toHaveBeenCalledWith(400);
     });
 
+    it('should return 403 if user is not the owner of the shop stream', async () => {
+      req.params = { id: 'stream-123' };
+      req.body = { viewers: 150 };
+      (req as any).user = {
+        role: 'STREAMER',
+        shopId: 'different-shop-id',
+      };
+      mockLivestreamStore.findById.mockResolvedValue({
+        id: 'stream-123',
+        shopId: 'shop-streamer-1',
+      } as any);
+
+      await controller.updateViewers(req as Request, res as Response);
+
+      expect(resStatus).toHaveBeenCalledWith(403);
+    });
+
     it('should call store and return 200 on success', async () => {
       req.params = { id: 'stream-123' };
       req.body = { viewers: 150 };
+      (req as any).user = {
+        role: 'STREAMER',
+        shopId: 'shop-streamer-1',
+      };
+      mockLivestreamStore.findById.mockResolvedValue({
+        id: 'stream-123',
+        shopId: 'shop-streamer-1',
+      } as any);
 
       await controller.updateViewers(req as Request, res as Response);
 

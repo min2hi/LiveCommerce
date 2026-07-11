@@ -111,7 +111,7 @@ describe('CheckoutController', () => {
 
     await controller.checkout(req as AuthenticatedRequest, res as Response);
 
-    expect(mockOrderStore.findByIdempotencyKey).toHaveBeenCalledWith('idemp-key-789');
+    expect(mockOrderStore.findByIdempotencyKey).toHaveBeenCalledWith('user-123:idemp-key-789');
     expect(resStatus).toHaveBeenCalledWith(200);
     expect(resJson).toHaveBeenCalledWith({
       message: 'Order already processed',
@@ -170,7 +170,7 @@ describe('CheckoutController', () => {
         productId: 'product-456',
         quantity: 1,
         totalPrice: 10,
-        idempotencyKey: 'idemp-key-789',
+        idempotencyKey: 'user-123:idemp-key-789',
       }),
     );
     expect(resStatus).toHaveBeenCalledWith(202);

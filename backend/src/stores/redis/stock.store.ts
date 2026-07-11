@@ -8,6 +8,7 @@ export class StockStore implements IStockStore {
     local stockKey = KEYS[1]
     local buyersKey = KEYS[2]
     local userId = ARGV[1]
+    local quantity = tonumber(ARGV[2]) or 1
 
     -- 1. Check if user already purchased
     if redis.call("sismember", buyersKey, userId) == 1 then
@@ -20,14 +21,14 @@ export class StockStore implements IStockStore {
       return -2
     end
 
-    -- 3. Check if stock is out
+    -- 3. Check if stock is out or insufficient
     local stockNum = tonumber(stock)
-    if stockNum <= 0 then
+    if stockNum < quantity then
       return 0
     end
 
     -- 4. Deduct stock and record buyer
-    redis.call("decrby", stockKey, 1)
+    redis.call("decrby", stockKey, quantity)
     redis.call("sadd", buyersKey, userId)
     return 1
   `;
@@ -45,6 +46,7 @@ export class StockStore implements IStockStore {
   async atomicCheckout(
     productId: string,
     userId: string,
+    quantity: number = 1,
   ): Promise<'ok' | 'out_of_stock' | 'already_purchased'> {
     const stockKey = this.getStockKey(productId);
     const buyersKey = this.getBuyersKey(productId);
@@ -53,7 +55,7 @@ export class StockStore implements IStockStore {
       // Run the Lua script
       const result = await this.redis.eval(this.LUA_CHECKOUT, {
         keys: [stockKey, buyersKey],
-        arguments: [userId],
+        arguments: [userId, quantity.toString()],
       });
 
       const status = Number(result);
@@ -70,13 +72,13 @@ export class StockStore implements IStockStore {
     }
   }
 
-  async rollback(productId: string, userId: string): Promise<void> {
+  async rollback(productId: string, userId: string, quantity: number = 1): Promise<void> {
     const stockKey = this.getStockKey(productId);
     const buyersKey = this.getBuyersKey(productId);
 
     try {
       // Multi transaction to ensure atomic rollback
-      await this.redis.multi().incrBy(stockKey, 1).sRem(buyersKey, userId).exec();
+      await this.redis.multi().incrBy(stockKey, quantity).sRem(buyersKey, userId).exec();
       redisOperationsTotal.inc({ operation: 'rollback', success: 'true' });
     } catch (err) {
       redisOperationsTotal.inc({ operation: 'rollback', success: 'false' });

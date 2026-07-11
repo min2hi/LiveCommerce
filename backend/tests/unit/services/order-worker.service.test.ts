@@ -107,7 +107,11 @@ describe('OrderWorkerService (Saga & Asynchronous Worker)', () => {
     expect(mockOrderStore.create).toHaveBeenCalledWith(testEvent);
     expect(mockProductStore.updateStock).not.toHaveBeenCalled();
     expect(mockOrderStore.updateStatus).not.toHaveBeenCalled();
-    expect(mockStockStore.rollback).toHaveBeenCalledWith(testEvent.productId, testEvent.userId);
+    expect(mockStockStore.rollback).toHaveBeenCalledWith(
+      testEvent.productId,
+      testEvent.userId,
+      testEvent.quantity,
+    );
   });
 
   it('should mark order as FAILED and trigger Saga rollback if updating stock fails', async () => {
@@ -127,6 +131,10 @@ describe('OrderWorkerService (Saga & Asynchronous Worker)', () => {
       -testEvent.quantity,
     );
     expect(mockOrderStore.updateStatus).toHaveBeenCalledWith(testOrder.id, 'FAILED');
-    expect(mockStockStore.rollback).toHaveBeenCalledWith(testEvent.productId, testEvent.userId);
+    expect(mockStockStore.rollback).toHaveBeenCalledWith(
+      testEvent.productId,
+      testEvent.userId,
+      testEvent.quantity,
+    );
   });
 });

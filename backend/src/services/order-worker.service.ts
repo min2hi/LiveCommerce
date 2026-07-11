@@ -84,7 +84,7 @@ export class OrderWorkerService {
 
       // 5. Saga Compensation: Rollback Redis reservation
       try {
-        await this.stockStore.rollback(event.productId, event.userId);
+        await this.stockStore.rollback(event.productId, event.userId, event.quantity);
         logger.info(
           `[OrderWorker] Redis stock rollback succeeded for product ${event.productId}, user ${event.userId}`,
           {

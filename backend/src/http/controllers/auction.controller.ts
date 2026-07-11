@@ -102,12 +102,16 @@ export class AuctionController {
         return;
       }
 
-      if (!amount || typeof amount !== 'number') {
-        res.status(400).json({ error: 'Valid bid amount is required' });
+      let parsedAmount = Number(amount);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        res.status(400).json({ error: 'Valid positive bid amount is required' });
         return;
       }
 
-      const bid = await this.store.placeBid(auctionId, userId, amount);
+      // Round to 2 decimal places to avoid micro-bidding / floating point spam
+      parsedAmount = Math.round(parsedAmount * 100) / 100;
+
+      const bid = await this.store.placeBid(auctionId, userId, parsedAmount);
       const auction = await this.store.findById(auctionId);
 
       if (auction) {
@@ -117,7 +121,7 @@ export class AuctionController {
           event: 'auction:bid_placed',
           data: {
             auctionId,
-            bidAmount: amount,
+            bidAmount: parsedAmount,
             userId,
             username,
           },

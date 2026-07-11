@@ -13,8 +13,7 @@ export class AuthController {
     private readonly db: Pool,
   ) {}
 
-  private hashPassword(password: string): string {
-    const salt = 'livecommerce-salt';
+  private hashPassword(password: string, salt: string): string {
     return crypto.scryptSync(password, salt, 64).toString('hex');
   }
 
@@ -39,7 +38,8 @@ export class AuthController {
         return;
       }
 
-      const passwordHash = this.hashPassword(password);
+      const salt = crypto.randomBytes(16).toString('hex');
+      const passwordHash = `${salt}:${this.hashPassword(password, salt)}`;
       const user = await this.userStore.create({
         username,
         email,
@@ -91,10 +91,23 @@ export class AuthController {
         return;
       }
 
-      const passwordHash = this.hashPassword(password);
-      if (user.passwordHash !== passwordHash) {
-        res.status(401).json({ error: 'Invalid credentials' });
-        return;
+      const storedHashPart = user.passwordHash;
+      const parts = storedHashPart.split(':');
+      if (parts.length !== 2) {
+        // Backwards compatibility for seed data or existing users with static salt
+        const fallbackHash = this.hashPassword(password, 'livecommerce-salt');
+        if (user.passwordHash !== fallbackHash) {
+          res.status(401).json({ error: 'Invalid credentials' });
+          return;
+        }
+      } else {
+        const salt = parts[0];
+        const hash = parts[1];
+        const computedHash = this.hashPassword(password, salt);
+        if (hash !== computedHash) {
+          res.status(401).json({ error: 'Invalid credentials' });
+          return;
+        }
       }
 
       // Query shopId if the user is a streamer

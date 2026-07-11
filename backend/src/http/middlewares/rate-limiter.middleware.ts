@@ -56,7 +56,7 @@ export async function checkoutRateLimit(
     next();
   } catch (err) {
     console.error('[RateLimiter] Error checking checkout rate limit:', err);
-    next(); // fail-open
+    res.status(500).json({ error: 'Internal Server Error: Rate limit verification failed' });
   }
 }
 

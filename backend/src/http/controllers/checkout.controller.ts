@@ -42,17 +42,19 @@ export class CheckoutController {
       return;
     }
 
+    const dbIdempotencyKey = `${userId}:${idempotencyKey}`;
+
     try {
       // 1. Check Idempotency Key in Redis
       const isNewRequest = await this.idempotencyStore.setIfAbsent(
-        `idem:${idempotencyKey}`,
+        `idem:${dbIdempotencyKey}`,
         'PROCESSING',
         86400, // 24 Hours TTL
       );
 
       if (!isNewRequest) {
         // Query Postgres in case it was already fully confirmed
-        const existingOrder = await this.orderStore.findByIdempotencyKey(idempotencyKey);
+        const existingOrder = await this.orderStore.findByIdempotencyKey(dbIdempotencyKey);
         if (existingOrder) {
           res.status(200).json({
             message: 'Order already processed',
@@ -75,7 +77,7 @@ export class CheckoutController {
       }
 
       // 3. Atomically check stock and reserve on Redis
-      const checkoutStatus = await this.stockStore.atomicCheckout(productId, userId);
+      const checkoutStatus = await this.stockStore.atomicCheckout(productId, userId, quantity);
 
       if (checkoutStatus === 'out_of_stock') {
         res.status(409).json({ error: 'Product is out of stock' });
@@ -95,7 +97,7 @@ export class CheckoutController {
         shopId: product.shopId,
         quantity,
         totalPrice,
-        idempotencyKey,
+        idempotencyKey: dbIdempotencyKey,
         traceId,
       };
 
@@ -103,7 +105,7 @@ export class CheckoutController {
       const published = await this.orderQueue.publish(event);
       if (!published) {
         // Rollback Redis reservation if queue fails
-        await this.stockStore.rollback(productId, userId);
+        await this.stockStore.rollback(productId, userId, quantity);
         res.status(500).json({ error: 'Failed to queue order' });
         return;
       }

@@ -90,11 +90,24 @@ export class LivestreamController {
 
   updateViewers = async (req: Request, res: Response): Promise<void> => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const user = (req as any).user;
       const id = req.params.id as string;
       const { viewers } = req.body;
 
       if (typeof viewers !== 'number' || viewers < 0) {
         res.status(400).json({ error: 'Bad Request: viewers count must be a non-negative number' });
+        return;
+      }
+
+      const stream = await this.livestreamStore.findById(id);
+      if (!stream) {
+        res.status(404).json({ error: 'Not Found: Livestream session not found' });
+        return;
+      }
+
+      if (stream.shopId !== user?.shopId && user?.role !== 'ADMIN') {
+        res.status(403).json({ error: 'Forbidden: You do not own this stream session' });
         return;
       }
 

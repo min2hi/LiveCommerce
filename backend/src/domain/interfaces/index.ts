@@ -55,10 +55,11 @@ export interface IStockStore {
   atomicCheckout(
     productId: string,
     userId: string,
+    quantity: number,
   ): Promise<'ok' | 'out_of_stock' | 'already_purchased'>;
 
   /** Compensation: undo a checkout (stock overflow protection) */
-  rollback(productId: string, userId: string): Promise<void>;
+  rollback(productId: string, userId: string, quantity: number): Promise<void>;
 
   getStock(productId: string): Promise<number>;
   setStock(productId: string, quantity: number): Promise<void>;
