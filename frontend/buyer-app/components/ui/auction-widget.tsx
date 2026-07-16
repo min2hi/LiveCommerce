@@ -3,6 +3,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Gavel, Trophy, User, ArrowUpRight, WarningCircle } from "@phosphor-icons/react";
+import { MovingBorder } from "@/components/ui/moving-border";
+import { buildApiUrl } from "@/lib/api";
 
 interface Auction {
   id: string;
@@ -35,7 +37,7 @@ export function AuctionWidget({ shopId }: { shopId: string }) {
     setToken(savedToken);
 
     // Initial fetch for active auction
-    fetch(`http://localhost:3000/api/auctions/active/${shopId}`)
+    fetch(buildApiUrl(`/auctions/active/${shopId}`))
       .then((res) => {
         if (!res.ok) throw new Error("No active auction");
         return res.json();
@@ -43,10 +45,10 @@ export function AuctionWidget({ shopId }: { shopId: string }) {
       .then((data: Auction) => {
         setAuction(data);
         // Fetch recent bids
-        return fetch(`http://localhost:3000/api/auctions/${data.id}/bids`);
+        return fetch(buildApiUrl(`/auctions/${data.id}/bids`));
       })
       .then((res) => res?.json())
-      .then((bids: any[]) => {
+      .then((bids: { userId: string; bidAmount: number; }[]) => {
         if (bids) {
           setRecentBids(
             bids.map((b) => ({
@@ -62,7 +64,7 @@ export function AuctionWidget({ shopId }: { shopId: string }) {
       });
 
     // Setup SSE
-    const eventSource = new EventSource(`http://localhost:3000/api/sse/stream?shopId=${shopId}`);
+    const eventSource = new EventSource(buildApiUrl(`/sse/stream?shopId=${shopId}`));
     sseRef.current = eventSource;
 
     eventSource.addEventListener("auction:started", (e) => {
@@ -113,7 +115,7 @@ export function AuctionWidget({ shopId }: { shopId: string }) {
     setIsBidding(true);
 
     try {
-      const res = await fetch(`http://localhost:3000/api/auctions/${auction.id}/bid`, {
+      const res = await fetch(buildApiUrl(`/auctions/${auction.id}/bid`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,7 +130,7 @@ export function AuctionWidget({ shopId }: { shopId: string }) {
         setTimeout(() => setError(null), 3000);
       }
     } catch (err) {
-      console.error(err);
+      console.warn("Lỗi đấu giá:", err);
       setError("Lỗi kết nối");
       setTimeout(() => setError(null), 3000);
     } finally {
@@ -142,21 +144,19 @@ export function AuctionWidget({ shopId }: { shopId: string }) {
     <AnimatePresence>
       {auction.status === "ACTIVE" && (
         <motion.div
-          initial={{ opacity: 0, x: 50, scale: 0.9 }}
+          initial={{ opacity: 0, x: -50, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 50, scale: 0.9 }}
-          className="absolute top-20 right-6 w-72 bg-zinc-950/80 backdrop-blur-2xl border border-amber-500/30 rounded-2xl p-4 shadow-[0_0_40px_rgba(245,158,11,0.2)] z-40 overflow-hidden"
+          exit={{ opacity: 0, x: -50, scale: 0.95 }}
+          className="absolute top-20 left-4 md:top-24 md:left-6 z-40"
         >
-          {/* Animated Glow Background */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-transparent to-red-500/10"
-            animate={{
-              backgroundPosition: ["0% 0%", "100% 100%"],
-            }}
-            transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
-          />
-
-          <div className="relative z-10 flex flex-col gap-3">
+          <MovingBorder
+            duration={4}
+            borderRadius="1rem"
+            containerClassName="w-72"
+            borderClassName="bg-[radial-gradient(#f59e0b_40%,transparent_60%)]"
+            className="w-full h-full bg-zinc-950/75 backdrop-blur-3xl border border-white/5 p-4 shadow-[0_8px_32px_rgba(245,158,11,0.15)] text-left"
+          >
+            <div className="relative z-10 flex flex-col gap-3 w-full">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
@@ -242,7 +242,8 @@ export function AuctionWidget({ shopId }: { shopId: string }) {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+            </div>
+          </MovingBorder>
         </motion.div>
       )}
 

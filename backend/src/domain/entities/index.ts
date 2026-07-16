@@ -34,6 +34,8 @@ export interface ProductEntity {
   price: number;
   stock: number;
   isFlashSale: boolean;
+  flashSaleEndTime?: Date;
+  imageUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Calendar, Bell, Check, ArrowRight, Info } from "@phosphor-icons/react";
+import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
+import { buildApiUrl } from "@/lib/api";
 
 interface ScheduledStream {
   id: string;
@@ -27,7 +29,7 @@ export function UpcomingStreams() {
     setToken(savedToken);
 
     // Fetch upcoming streams
-    fetch("http://localhost:3000/api/scheduled-streams/upcoming")
+    fetch(buildApiUrl("/scheduled-streams/upcoming"))
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch streams");
         return res.json();
@@ -39,7 +41,7 @@ export function UpcomingStreams() {
         // If logged in, batch-check reminders
         if (savedToken && data.length > 0) {
           data.forEach((stream) => {
-            fetch(`http://localhost:3000/api/scheduled-streams/${stream.id}/remind/check`, {
+            fetch(buildApiUrl(`/scheduled-streams/${stream.id}/remind/check`), {
               headers: { Authorization: `Bearer ${savedToken}` },
             })
               .then((res) => res.json())
@@ -67,7 +69,7 @@ export function UpcomingStreams() {
 
     const isReminded = remindedIds[streamId];
     const method = isReminded ? "DELETE" : "POST";
-    const url = `http://localhost:3000/api/scheduled-streams/${streamId}/remind`;
+    const url = buildApiUrl(`/scheduled-streams/${streamId}/remind`);
 
     try {
       const res = await fetch(url, {
@@ -148,73 +150,77 @@ export function UpcomingStreams() {
 
         {/* Horizontal Slider Wrapper */}
         <div className="relative">
-          <div className="flex gap-6 overflow-x-auto pb-6 pt-2 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent scroll-smooth snap-x snap-mandatory">
-            {streams.map((stream) => {
+          <InfiniteMovingCards
+            speed="slow"
+            pauseOnHover={true}
+            items={streams.map((stream) => {
               const isReminded = remindedIds[stream.id];
-              return (
-                <div
-                  key={stream.id}
-                  className="w-[290px] md:w-[320px] flex-shrink-0 bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden snap-start hover:border-cyan-500/30 transition-all duration-300 group shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
-                >
-                  {/* Banner Image */}
-                  <div className="relative h-44 overflow-hidden bg-zinc-950">
-                    <img
-                      src={stream.bannerUrl || "https://picsum.photos/seed/default/600/400"}
-                      alt={stream.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
-                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[9px] font-semibold text-cyan-400 tracking-wider uppercase font-mono">
-                      Sắp Diễn Ra
-                    </div>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="p-5 flex flex-col justify-between min-h-[190px]">
-                    <div className="space-y-3">
-                      <div className="text-[11px] font-mono font-bold text-cyan-400 bg-cyan-950/40 border border-cyan-800/30 rounded px-2.5 py-0.5 inline-block">
-                        {formatTime(stream.scheduledTime)}
+              return {
+                id: stream.id,
+                content: (
+                  <div
+                    className="w-[290px] md:w-[320px] flex-shrink-0 bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-cyan-500/30 transition-all duration-300 group shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
+                  >
+                    {/* Banner Image */}
+                    <div className="relative h-44 overflow-hidden bg-zinc-950">
+                      <img
+                        src={stream.bannerUrl || "https://picsum.photos/seed/default/600/400"}
+                        alt={stream.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
+                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[9px] font-semibold text-cyan-400 tracking-wider uppercase font-mono">
+                        Sắp Diễn Ra
                       </div>
-                      <h3 className="text-base font-bold text-white line-clamp-1 group-hover:text-cyan-300 transition-colors">
-                        {stream.title}
-                      </h3>
-                      <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
-                        {stream.description || "Tham gia ngay để nhận hàng loạt ưu đãi hấp dẫn từ Streamer."}
-                      </p>
                     </div>
 
-                    {/* Footer Actions */}
-                    <div className="pt-4 flex items-center justify-between border-t border-white/5">
-                      <span className="text-[10px] font-mono text-zinc-500">
-                        @{stream.shopName || "TechStore"}
-                      </span>
+                    {/* Card Body */}
+                    <div className="p-5 flex flex-col justify-between min-h-[190px]">
+                      <div className="space-y-3">
+                        <div className="text-[11px] font-mono font-bold text-cyan-400 bg-cyan-950/40 border border-cyan-800/30 rounded px-2.5 py-0.5 inline-block">
+                          {formatTime(stream.scheduledTime)}
+                        </div>
+                        <h3 className="text-base font-bold text-white line-clamp-1 group-hover:text-cyan-300 transition-colors">
+                          {stream.title}
+                        </h3>
+                        <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                          {stream.description || "Tham gia ngay để nhận hàng loạt ưu đãi hấp dẫn từ Streamer."}
+                        </p>
+                      </div>
 
-                      <button
-                        onClick={() => handleToggleReminder(stream.id)}
-                        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                          isReminded
-                            ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                            : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 hover:text-white border border-white/5"
-                        }`}
-                      >
-                        {isReminded ? (
-                          <>
-                            <Check size={13} weight="bold" />
-                            Đã Nhắc
-                          </>
-                        ) : (
-                          <>
-                            <Bell size={13} />
-                            Nhắc Tôi
-                          </>
-                        )}
-                      </button>
+                      {/* Footer Actions */}
+                      <div className="pt-4 flex items-center justify-between border-t border-white/5">
+                        <span className="text-[10px] font-mono text-zinc-500">
+                          @{stream.shopName || "TechStore"}
+                        </span>
+
+                        <button
+                          onClick={() => handleToggleReminder(stream.id)}
+                          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                            isReminded
+                              ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                              : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 hover:text-white border border-white/5"
+                          }`}
+                        >
+                          {isReminded ? (
+                            <>
+                              <Check size={13} weight="bold" />
+                              Đã Nhắc
+                            </>
+                          ) : (
+                            <>
+                              <Bell size={13} />
+                              Nhắc Tôi
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
+                ),
+              };
             })}
-          </div>
+          />
         </div>
 
         {/* Global Toast Alert Message */}

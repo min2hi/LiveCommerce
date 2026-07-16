@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { useMotionValue, animate, useInView } from "motion/react";
+import { MovingBorder } from "@/components/ui/moving-border";
 
 interface AnimatedCounterProps {
   from: number;
@@ -35,8 +36,14 @@ function AnimatedCounter({ from, to, duration = 1.8, suffix = "" }: AnimatedCoun
 
 export function StatsBar() {
   return (
-    <div className="w-full bg-[#161b27] text-white py-4 border-y border-white/5 relative z-20">
-      <div className="mx-auto max-w-7xl px-4 md:px-8 flex flex-col sm:flex-row justify-around items-center gap-4 text-center font-mono text-xs">
+    <div className="w-full relative z-20 px-4 md:px-8 -mt-8">
+      <MovingBorder
+        duration={6}
+        borderRadius="1rem"
+        containerClassName="mx-auto max-w-5xl"
+        borderClassName="bg-[radial-gradient(#06b6d4_40%,transparent_60%)]"
+        className="w-full py-4 px-6 flex flex-col sm:flex-row justify-around items-center gap-4 text-center font-mono text-xs bg-[#161b27]/80 backdrop-blur-xl"
+      >
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -63,7 +70,7 @@ export function StatsBar() {
             <AnimatedCounter from={300} to={482} /> SECURED
           </span>
         </div>
-      </div>
+      </MovingBorder>
     </div>
   );
 }

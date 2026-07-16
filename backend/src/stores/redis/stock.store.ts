@@ -4,9 +4,10 @@ import type { IStockStore } from '../../domain/interfaces';
 import { redisOperationsTotal } from '../../infrastructure/metrics';
 
 export class StockStore implements IStockStore {
+  private readonly NUM_SHARDS = 10;
+
   private readonly LUA_CHECKOUT = `
-    local stockKey = KEYS[1]
-    local buyersKey = KEYS[2]
+    local buyersKey = KEYS[11]
     local userId = ARGV[1]
     local quantity = tonumber(ARGV[2]) or 1
 
@@ -15,28 +16,27 @@ export class StockStore implements IStockStore {
       return -1
     end
 
-    -- 2. Check if stock exists
-    local stock = redis.call("get", stockKey)
-    if not stock then
-      return -2
+    -- 2. Try to deduct from any of the 10 shards
+    for i = 1, 10 do
+      local stockKey = KEYS[i]
+      local stock = redis.call("get", stockKey)
+      if stock then
+        local stockNum = tonumber(stock)
+        if stockNum >= quantity then
+          redis.call("decrby", stockKey, quantity)
+          redis.call("sadd", buyersKey, userId)
+          return i -- return the shard index (1-indexed) that succeeded
+        end
+      end
     end
 
-    -- 3. Check if stock is out or insufficient
-    local stockNum = tonumber(stock)
-    if stockNum < quantity then
-      return 0
-    end
-
-    -- 4. Deduct stock and record buyer
-    redis.call("decrby", stockKey, quantity)
-    redis.call("sadd", buyersKey, userId)
-    return 1
+    return 0 -- out of stock
   `;
 
   constructor(private readonly redis: RedisClientType) {}
 
-  private getStockKey(productId: string): string {
-    return `product:stock:${productId}`;
+  private getStockKey(productId: string, shardId: number): string {
+    return `product:stock:${productId}:${shardId}`;
   }
 
   private getBuyersKey(productId: string): string {
@@ -48,24 +48,29 @@ export class StockStore implements IStockStore {
     userId: string,
     quantity: number = 1,
   ): Promise<'ok' | 'out_of_stock' | 'already_purchased'> {
-    const stockKey = this.getStockKey(productId);
+    // Generate all 10 stock shard keys
+    const stockKeys = Array.from({ length: this.NUM_SHARDS }, (_, i) => this.getStockKey(productId, i));
+    
+    // Shuffle the array to distribute load across shards and avoid hot-keying shard 0
+    const shuffledStockKeys = [...stockKeys].sort(() => Math.random() - 0.5);
+    
     const buyersKey = this.getBuyersKey(productId);
+    const allKeys = [...shuffledStockKeys, buyersKey]; // 11 keys total
 
     try {
       // Run the Lua script
       const result = await this.redis.eval(this.LUA_CHECKOUT, {
-        keys: [stockKey, buyersKey],
+        keys: allKeys,
         arguments: [userId, quantity.toString()],
       });
 
       const status = Number(result);
       redisOperationsTotal.inc({ operation: 'lua_checkout', success: 'true' });
 
-      if (status === 1) return 'ok';
+      if (status > 0) return 'ok'; // > 0 means the shard index that succeeded
       if (status === -1) return 'already_purchased';
-      if (status === 0 || status === -2) return 'out_of_stock';
 
-      return 'out_of_stock';
+      return 'out_of_stock'; // 0
     } catch (err) {
       redisOperationsTotal.inc({ operation: 'lua_checkout', success: 'false' });
       throw err;
@@ -73,7 +78,9 @@ export class StockStore implements IStockStore {
   }
 
   async rollback(productId: string, userId: string, quantity: number = 1): Promise<void> {
-    const stockKey = this.getStockKey(productId);
+    // Increment a random shard since any shard can receive the returned stock
+    const randomShard = Math.floor(Math.random() * this.NUM_SHARDS);
+    const stockKey = this.getStockKey(productId, randomShard);
     const buyersKey = this.getBuyersKey(productId);
 
     try {
@@ -87,18 +94,32 @@ export class StockStore implements IStockStore {
   }
 
   async getStock(productId: string): Promise<number> {
-    const stockKey = this.getStockKey(productId);
-    const stock = await this.redis.get(stockKey);
-    if (!stock) return 0;
-    return parseInt(stock, 10);
+    const stockKeys = Array.from({ length: this.NUM_SHARDS }, (_, i) => this.getStockKey(productId, i));
+    const stocks = await this.redis.mGet(stockKeys);
+    
+    let total = 0;
+    for (const stock of stocks) {
+      if (stock) total += parseInt(stock, 10);
+    }
+    return total;
   }
 
   async setStock(productId: string, quantity: number): Promise<void> {
-    const stockKey = this.getStockKey(productId);
     const buyersKey = this.getBuyersKey(productId);
+    const multi = this.redis.multi();
 
-    // Clear old buyers and set new stock
-    await this.redis.multi().set(stockKey, quantity.toString()).del(buyersKey).exec();
+    const baseQuantity = Math.floor(quantity / this.NUM_SHARDS);
+    const remainder = quantity % this.NUM_SHARDS;
+
+    // Distribute stock across shards
+    for (let i = 0; i < this.NUM_SHARDS; i++) {
+      const stockKey = this.getStockKey(productId, i);
+      const shardQuantity = i === 0 ? baseQuantity + remainder : baseQuantity;
+      multi.set(stockKey, shardQuantity.toString());
+    }
+
+    // Clear old buyers and execute
+    await multi.del(buyersKey).exec();
   }
 
   async publishConfirmedOrder(shopId: string, payload: unknown): Promise<void> {

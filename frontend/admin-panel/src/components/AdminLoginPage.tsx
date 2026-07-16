@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Sparkle, Key, Envelope } from "@phosphor-icons/react";
 import { motion } from "motion/react";
+import { buildApiUrl } from "../lib/api";
 
 interface AdminLoginPageProps {
   onLoginSuccess: (token: string) => void;
@@ -23,7 +24,7 @@ export function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) {
     setErrorMsg("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
+      const res = await fetch(buildApiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -31,10 +32,10 @@ export function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) {
 
       if (res.ok) {
         const data = await res.json();
-        
+
         // Decode token to verify role
         const payload = JSON.parse(atob(data.token.split(".")[1]));
-        if (payload.role !== "ADMIN") {
+        if (payload.role.toUpperCase() !== "ADMIN") {
           setErrorMsg("Access Denied: Insufficient authorization role.");
           return;
         }

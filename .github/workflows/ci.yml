@@ -10,10 +10,6 @@ jobs:
   build-test-lint:
     runs-on: ubuntu-latest
 
-    services:
-      # We spin up docker services via compose instead of direct services to reuse docker-compose configs
-      # but we can also use compose command in step.
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

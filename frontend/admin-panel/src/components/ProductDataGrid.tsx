@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Lightning, Warning, MagnifyingGlass, Broadcast } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
+import { buildApiUrl } from "../lib/api";
 
 interface Product {
   id: string;
@@ -43,7 +44,7 @@ export function ProductDataGrid({ selectedProductId, onSelectProduct, refreshKey
 
   // Fetch products from backend
   const fetchProducts = () => {
-    fetch("http://localhost:3000/api/products")
+    fetch(buildApiUrl("/products"))
       .then((res) => res.json())
       .then((data: BackendProduct[]) => {
         const mapped: Product[] = data.map((p) => ({
@@ -68,7 +69,7 @@ export function ProductDataGrid({ selectedProductId, onSelectProduct, refreshKey
     setIsConnecting(true);
     setErrorMsg(null);
     try {
-      const loginRes = await fetch("http://localhost:3000/api/auth/login", {
+      const loginRes = await fetch(buildApiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "streamer1@livecommerce.com", password: "password123" }),
@@ -81,7 +82,7 @@ export function ProductDataGrid({ selectedProductId, onSelectProduct, refreshKey
         return;
       }
 
-      const registerRes = await fetch("http://localhost:3000/api/auth/register", {
+      const registerRes = await fetch(buildApiUrl("/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -97,7 +98,7 @@ export function ProductDataGrid({ selectedProductId, onSelectProduct, refreshKey
         throw new Error(regErr.error || "Failed to register streamer.");
       }
 
-      const retryLoginRes = await fetch("http://localhost:3000/api/auth/login", {
+      const retryLoginRes = await fetch(buildApiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "streamer1@livecommerce.com", password: "password123" }),
@@ -110,9 +111,9 @@ export function ProductDataGrid({ selectedProductId, onSelectProduct, refreshKey
       } else {
         throw new Error("Authentication failed after registration.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMsg(err.message || "Failed to authenticate console.");
+      setErrorMsg((err as Error).message || "Failed to authenticate console.");
     } finally {
       setIsConnecting(false);
     }
@@ -138,7 +139,7 @@ export function ProductDataGrid({ selectedProductId, onSelectProduct, refreshKey
     const willBeActive = selectedProduct.status !== "Active";
 
     try {
-      const res = await fetch(`http://localhost:3000/api/products/${selectedProductId}/flash-sale`, {
+      const res = await fetch(buildApiUrl(`/products/${selectedProductId}/flash-sale`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

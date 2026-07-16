@@ -43,6 +43,7 @@ export interface IOrderStore {
   create(event: OrderPendingEvent): Promise<OrderEntity>;
   findByIdempotencyKey(key: string): Promise<OrderEntity | null>;
   updateStatus(id: string, status: OrderEntity['status']): Promise<void>;
+  findByUserId(userId: string): Promise<OrderEntity[]>;
 }
 
 // ── Stock Store Interface (Redis) ─────────────────────────────────────────

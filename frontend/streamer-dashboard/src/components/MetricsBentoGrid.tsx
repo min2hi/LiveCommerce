@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { TrendUp, Users, ShoppingCart, WarningCircle, Broadcast } from "@phosphor-icons/react";
+import { motion } from "motion/react";
+import { TrendUp, Users, ShoppingCart, Broadcast } from "@phosphor-icons/react";
+import { buildApiUrl } from "../lib/api";
 
 export function MetricsBentoGrid() {
   const [orders, setOrders] = useState(1482);
   const [revenue, setRevenue] = useState(44460);
   const [pulse, setPulse] = useState(false);
-  const [recentSales, setRecentSales] = useState<{ id: number; item: string; time: string }[]>([]);
-  const [stock, setStock] = useState(14);
+  const [activeViewers, setActiveViewers] = useState(0);
 
   const [token, setToken] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -37,7 +37,7 @@ export function MetricsBentoGrid() {
       setErrorMsg(null);
 
       // Fetch initial metrics
-      fetch("http://localhost:3000/api/products/shop-metrics", {
+      fetch(buildApiUrl("/metrics/streamer"), {
         headers: { "Authorization": `Bearer ${token}` }
       })
       .then((res) => {
@@ -45,26 +45,18 @@ export function MetricsBentoGrid() {
         return res.json();
       })
       .then((data) => {
-        setOrders(data.totalOrders);
-        setRevenue(data.totalRevenue);
-        setStock(data.currentStock);
-        const mappedSales = data.recentSales.map((sale: any) => ({
-          id: sale.id,
-          item: `$${sale.totalPrice} (...${sale.id.substring(sale.id.length - 6).toUpperCase()})`,
-          time: new Date(sale.createdAt).toLocaleTimeString(),
-        }));
-        setRecentSales(mappedSales);
+        setOrders(data.totalOrders || 0);
+        setRevenue(data.totalRevenue || 0);
+        setActiveViewers(data.activeViewers || 0);
       })
       .catch((err) => {
         console.error("Failed to fetch initial telemetry stats:", err);
-        // Fallback to 0 if failed
         setOrders(0);
         setRevenue(0);
-        setRecentSales([]);
-        setStock(0);
+        setActiveViewers(0);
       });
 
-      eventSource = new EventSource(`http://localhost:3000/api/sse/streamer?token=${token}`);
+      eventSource = new EventSource(buildApiUrl(`/sse/streamer?token=${token}`));
 
       eventSource.onopen = () => {
         setIsConnected(true);
@@ -82,20 +74,14 @@ export function MetricsBentoGrid() {
       eventSource.addEventListener("order_confirmed", (e) => {
         try {
           const payload = JSON.parse(e.data);
-          setOrders((prev) => prev + 1);
-          setRevenue((prev) => prev + (payload.totalPrice || 0));
-          setStock((prev) => Math.max(0, prev - (payload.quantity || 1)));
-          setPulse(true);
-          setTimeout(() => setPulse(false), 400);
-
-          setRecentSales((prev) => {
-            const newSale = {
-              id: Date.now(),
-              item: `$${payload.totalPrice} (...${payload.id.substring(payload.id.length - 6).toUpperCase()})`,
-              time: new Date(payload.createdAt).toLocaleTimeString(),
-            };
-            return [newSale, ...prev].slice(0, 6);
-          });
+          if (payload.event === 'stock_updated') {
+            // Do something or ignore
+          } else if (payload.event === 'order_confirmed' || payload.totalPrice) {
+            setOrders((prev) => prev + 1);
+            setRevenue((prev) => prev + (payload.totalPrice || 0));
+            setPulse(true);
+            setTimeout(() => setPulse(false), 400);
+          }
         } catch (parseErr) {
           console.error("Failed to parse order_confirmed payload:", parseErr);
         }
@@ -120,14 +106,8 @@ export function MetricsBentoGrid() {
       if (Math.random() > 0.45) {
         setOrders((prev) => prev + 1);
         setRevenue((prev) => prev + 299);
-        setStock((prev) => Math.max(0, prev - 1));
         setPulse(true);
         setTimeout(() => setPulse(false), 400);
-
-        setRecentSales((prev) => {
-          const newSale = { id: Date.now(), item: "Sony WH-1000XM5", time: new Date().toLocaleTimeString() };
-          return [newSale, ...prev].slice(0, 6);
-        });
       }
     }, 2800);
     return () => clearInterval(interval);
@@ -138,7 +118,7 @@ export function MetricsBentoGrid() {
     setErrorMsg(null);
     try {
       // 1. Try to login
-      const loginRes = await fetch("http://localhost:3000/api/auth/login", {
+      const loginRes = await fetch(buildApiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "streamer1@livecommerce.com", password: "password123" }),
@@ -152,7 +132,7 @@ export function MetricsBentoGrid() {
       }
 
       // 2. Register if login fails
-      const registerRes = await fetch("http://localhost:3000/api/auth/register", {
+      const registerRes = await fetch(buildApiUrl("/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -169,7 +149,7 @@ export function MetricsBentoGrid() {
       }
 
       // 3. Retry login
-      const retryLoginRes = await fetch("http://localhost:3000/api/auth/login", {
+      const retryLoginRes = await fetch(buildApiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "streamer1@livecommerce.com", password: "password123" }),
@@ -182,9 +162,9 @@ export function MetricsBentoGrid() {
       } else {
         throw new Error("Failed to login after registering.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMsg(err.message || "Failed to authenticate.");
+      setErrorMsg((err as Error).message || "Failed to authenticate.");
       setIsConnecting(false);
     }
   };
@@ -192,10 +172,9 @@ export function MetricsBentoGrid() {
   const handleDisconnect = () => {
     localStorage.removeItem("streamer_token");
     setToken(null);
-    setIsConnected(false);
     setOrders(1482); // Reset to simulated defaults
     setRevenue(44460);
-    setRecentSales([]);
+    setActiveViewers(0);
   };
 
   return (
@@ -302,30 +281,13 @@ export function MetricsBentoGrid() {
           </div>
           <div className="flex flex-col mt-4">
             <span className="text-3xl font-mono font-bold tracking-tight text-zinc-50">
-              12,408
+              {activeViewers.toLocaleString()}
             </span>
             <span className="text-[9px] text-zinc-600 font-mono font-bold uppercase tracking-wider mt-1">
               Active socket connections
             </span>
           </div>
         </div>
-
-        {/* Metric 4: Stock Warning */}
-        <div className="p-6 flex flex-col justify-between h-36 group">
-          <div className="flex justify-between items-center text-[10px] uppercase font-mono tracking-wider text-zinc-500 font-bold">
-            <span>Inventory Alert</span>
-            <WarningCircle size={16} className="text-red-500/80 group-hover:text-red-400 transition-colors" weight="bold" />
-          </div>
-          <div className="flex flex-col mt-4">
-            <span className="text-lg font-mono font-bold text-red-500 uppercase tracking-widest leading-none">
-              {stock === 0 ? "OUT OF STOCK" : `${stock} UNITS LEFT`}
-            </span>
-            <span className="text-xs font-mono font-bold text-zinc-400 mt-1">
-              Product: Sony XM5
-            </span>
-          </div>
-        </div>
-
       </div>
       {/* Lower Section: Telemetry Log */}
       <div className="mt-8 border border-zinc-900 rounded-2xl overflow-hidden bg-black/20 backdrop-blur-md relative z-10">
@@ -342,37 +304,14 @@ export function MetricsBentoGrid() {
           </span>
         </div>
 
-        <div className="p-4 min-h-[240px] max-h-[400px] overflow-y-auto">
+        <div className="p-4 min-h-[140px] max-h-[400px] overflow-y-auto">
           <div className="flex flex-col gap-1">
-            <AnimatePresence initial={false}>
-              {recentSales.map((sale) => (
-                <motion.div
-                  key={sale.id}
-                  initial={{ opacity: 0, x: -6, backgroundColor: "rgba(34, 211, 238, 0.08)" }}
-                  animate={{ opacity: 1, x: 0, backgroundColor: "rgba(34, 211, 238, 0)" }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex justify-between items-center px-4 py-2.5 hover:bg-zinc-900/20 transition-all rounded-lg border border-transparent hover:border-zinc-900"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                    <span className="text-xs font-mono text-zinc-300 uppercase tracking-wider font-semibold">
-                      Order Confirmed: {sale.item}
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-mono text-zinc-500">{sale.time}</span>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            
-            {recentSales.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-48 text-zinc-600 font-mono text-xs gap-3 select-none">
+              <div className="flex flex-col items-center justify-center h-24 text-zinc-600 font-mono text-xs gap-3 select-none">
                 <span className="w-2 h-2 rounded-full bg-zinc-700 animate-ping"></span>
                 <span className="uppercase tracking-widest text-[10px] font-bold text-zinc-500">
                   Awaiting incoming telemetry packets...
                 </span>
               </div>
-            )}
           </div>
         </div>
 

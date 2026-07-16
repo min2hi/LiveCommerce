@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, User, Key, Envelope } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
-import { Canvas3DBackground } from "@/components/ui/canvas-3d-background";
+import { BackgroundBeams } from "@/components/ui/background-beams";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -24,7 +24,8 @@ export default function RegisterPage() {
     setErrorMsg("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/register", {
+      const { buildApiUrl } = await import("@/lib/api");
+      const res = await fetch(buildApiUrl("/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password, role: "BUYER" }),
@@ -32,7 +33,7 @@ export default function RegisterPage() {
 
       if (res.ok) {
         // Automatically login the user after registration
-        const loginRes = await fetch("http://localhost:3000/api/auth/login", {
+        const loginRes = await fetch(buildApiUrl("/auth/login"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
@@ -41,7 +42,7 @@ export default function RegisterPage() {
         if (loginRes.ok) {
           const data = await loginRes.json();
           localStorage.setItem("buyer_token", data.token);
-          router.push("/live/1");
+          router.push("/");
         } else {
           router.push("/login");
         }
@@ -50,7 +51,7 @@ export default function RegisterPage() {
         setErrorMsg(data.error || "Registration failed. Try a different email.");
       }
     } catch (err) {
-      console.error("[Register] Connection failed:", err);
+      console.warn("[Register] Connection failed:", err);
       setErrorMsg("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -58,38 +59,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex bg-zinc-950 text-zinc-100 relative overflow-hidden font-sans">
+    <div className="min-h-[100dvh] flex bg-[#0d0f14] text-zinc-100 relative overflow-hidden font-sans">
       
-      {/* Dynamic 3D Node Mesh Background */}
-      <Canvas3DBackground accent="cyan" centerX={0.46} />
-
-      {/* Ambient Breathing Background Mesh */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-cyan-500/10 blur-[120px]"
-          animate={{
-            x: [0, -40, 20, 0],
-            y: [0, 30, -40, 0],
-          }}
-          transition={{
-            duration: 16,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-emerald-500/10 blur-[120px]"
-          animate={{
-            x: [0, 40, -20, 0],
-            y: [0, -30, 40, 0],
-          }}
-          transition={{
-            duration: 14,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </div>
+      {/* Aceternity Background Beams */}
+      <BackgroundBeams />
 
       {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] opacity-40 z-0 pointer-events-none"></div>
@@ -154,7 +127,7 @@ export default function RegisterPage() {
               <p className="text-xs text-zinc-400">Register a new buyer account to start shopping.</p>
             </div>
 
-            <form onSubmit={handleRegister} className="flex flex-col gap-4.5">
+            <form onSubmit={handleRegister} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="username" className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
                   <User size={12} />
@@ -166,8 +139,8 @@ export default function RegisterPage() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="johndoe"
-                  className="h-10.5 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400/50 placeholder-zinc-600 transition-all font-medium"
+                  placeholder="your_username"
+                  className="h-11 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400/50 placeholder-zinc-600 transition-all font-medium"
                 />
               </div>
 
@@ -183,7 +156,7 @@ export default function RegisterPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="buyer@livecommerce.com"
-                  className="h-10.5 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400/50 placeholder-zinc-600 transition-all font-medium"
+                  className="h-11 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400/50 placeholder-zinc-600 transition-all font-medium"
                 />
               </div>
 
@@ -199,7 +172,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="h-10.5 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400/50 placeholder-zinc-600 transition-all font-medium"
+                  className="h-11 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400/50 placeholder-zinc-600 transition-all font-medium"
                 />
               </div>
 
@@ -218,7 +191,7 @@ export default function RegisterPage() {
                 <Button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full h-10.5 rounded-full font-mono text-[11px] font-bold uppercase tracking-widest bg-white text-zinc-950 hover:bg-zinc-200 transition-colors cursor-pointer"
+                  className="w-full h-11 rounded-full font-mono text-[11px] font-bold uppercase tracking-widest bg-white text-zinc-950 hover:bg-zinc-200 transition-colors cursor-pointer"
                 >
                   {loading ? "Creating Account..." : "Create Account"}
                 </Button>

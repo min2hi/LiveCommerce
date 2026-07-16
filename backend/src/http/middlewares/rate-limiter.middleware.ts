@@ -79,6 +79,6 @@ export async function chatRateLimit(
     next();
   } catch (err) {
     console.error('[RateLimiter] Error checking chat rate limit:', err);
-    next(); // fail-open
+    res.status(503).json({ error: 'Service Unavailable: Rate limit service down' });
   }
 }

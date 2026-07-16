@@ -4,6 +4,7 @@ import { MetricsBentoGrid } from "./components/MetricsBentoGrid";
 import { StreamerLoginPage } from "./components/StreamerLoginPage";
 import { Copy, CheckCircle, Lightning, Warning, Sliders } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
+import { buildApiUrl } from "./lib/api";
 
 export default function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("streamer_token"));
@@ -22,7 +23,7 @@ export default function App() {
   const shopId = getShopIdFromToken(token);
 
   // Livestream states
-  const [streamSession, setStreamSession] = useState<any>(null);
+  const [streamSession, setStreamSession] = useState<Record<string, any> | null>(null);
   const [newStreamTitle, setNewStreamTitle] = useState("Premium Mech Keyboard Showcase & Drop");
   const [isStarting, setIsStarting] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
@@ -33,10 +34,10 @@ export default function App() {
     if (!token || !shopId) return;
     const checkActiveSession = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/livestreams/active");
+        const res = await fetch(buildApiUrl("/livestreams/active"));
         if (res.ok) {
           const activeStreams = await res.json();
-          const myActive = activeStreams.find((s: any) => s.shopId === shopId);
+          const myActive = activeStreams.find((s: { shopId: string }) => s.shopId === shopId);
           if (myActive) {
             setStreamSession(myActive);
           }
@@ -57,7 +58,7 @@ export default function App() {
     setIsStarting(true);
     setStreamError("");
     try {
-      const res = await fetch("http://localhost:3000/api/livestreams/start", {
+      const res = await fetch(buildApiUrl("/livestreams/start"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -72,7 +73,8 @@ export default function App() {
         const errData = await res.json().catch(() => ({}));
         setStreamError(errData.error || "Failed to start livestream session");
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error(err);
       setStreamError("Failed to connect to media gateway server");
     } finally {
       setIsStarting(false);
@@ -84,7 +86,7 @@ export default function App() {
     setIsEnding(true);
     setStreamError("");
     try {
-      const res = await fetch(`http://localhost:3000/api/livestreams/${streamSession.id}/end`, {
+      const res = await fetch(buildApiUrl(`/livestreams/${streamSession.id}/end`), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -96,7 +98,8 @@ export default function App() {
         const errData = await res.json().catch(() => ({}));
         setStreamError(errData.error || "Failed to end livestream session");
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error(err);
       setStreamError("Failed to connect to media gateway server");
     } finally {
       setIsEnding(false);
@@ -319,9 +322,9 @@ function StreamerInventory() {
   const token = localStorage.getItem("streamer_token");
 
   const fetchProducts = () => {
-    fetch("http://localhost:3000/api/products")
+    fetch(buildApiUrl("/products"))
       .then((res) => res.json())
-      .then((data: any[]) => {
+      .then((data: { id: string; name: string; price: string; stock: string; isFlashSale: boolean }[]) => {
         setProducts(
           data.map((p) => ({
             id: p.id,
@@ -350,7 +353,7 @@ function StreamerInventory() {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:3000/api/products/${prodId}/stock`, {
+      const res = await fetch(buildApiUrl(`/products/${prodId}/stock`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -363,8 +366,8 @@ function StreamerInventory() {
       }
       setEditingId(null);
       fetchProducts();
-    } catch (err: any) {
-      setErrorMsg(err.message || "Request failed");
+    } catch (err: unknown) {
+      setErrorMsg((err as Error).message || "Request failed");
     }
   };
 
@@ -464,10 +467,24 @@ function StreamerAIConfig() {
   const [tone, setTone] = useState("Enthusiastic");
   const [saved, setSaved] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const token = localStorage.getItem("streamer_token");
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      await fetch(buildApiUrl("/livestreams/config"), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ prompt, tone }),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save AI config", err);
+    }
   };
 
   return (

@@ -3,7 +3,7 @@ import type { ILivestreamStore } from '../../domain/interfaces';
 import type { LivestreamEntity } from '../../domain/entities';
 
 export class LivestreamStore implements ILivestreamStore {
-  constructor(private readonly db: Pool) {}
+  constructor(private readonly writeDb: Pool, private readonly readDb: Pool = writeDb) {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapRowToEntity(row: any): LivestreamEntity {
@@ -32,7 +32,7 @@ export class LivestreamStore implements ILivestreamStore {
       VALUES ($1, $2, $3, 'PENDING', 0)
       RETURNING id, shop_id, title, stream_key, status, viewers, created_at, updated_at, ended_at
     `;
-    const { rows } = await this.db.query(query, [data.shopId, data.title, data.streamKey]);
+    const { rows } = await this.writeDb.query(query, [data.shopId, data.title, data.streamKey]);
     return this.mapRowToEntity(rows[0]);
   }
 
@@ -43,7 +43,7 @@ export class LivestreamStore implements ILivestreamStore {
       JOIN shops s ON l.shop_id = s.id
       WHERE l.id = $1
     `;
-    const { rows } = await this.db.query(query, [id]);
+    const { rows } = await this.readDb.query(query, [id]);
     if (rows.length === 0) return null;
     return this.mapRowToEntity(rows[0]);
   }
@@ -54,7 +54,7 @@ export class LivestreamStore implements ILivestreamStore {
       FROM livestreams
       WHERE stream_key = $1
     `;
-    const { rows } = await this.db.query(query, [streamKey]);
+    const { rows } = await this.readDb.query(query, [streamKey]);
     if (rows.length === 0) return null;
     return this.mapRowToEntity(rows[0]);
   }
@@ -66,7 +66,7 @@ export class LivestreamStore implements ILivestreamStore {
       WHERE shop_id = $1
       ORDER BY created_at DESC
     `;
-    const { rows } = await this.db.query(query, [shopId]);
+    const { rows } = await this.readDb.query(query, [shopId]);
     return rows.map((row) => this.mapRowToEntity(row));
   }
 
@@ -78,7 +78,7 @@ export class LivestreamStore implements ILivestreamStore {
       WHERE l.status = 'LIVE'
       ORDER BY l.created_at DESC
     `;
-    const { rows } = await this.db.query(query);
+    const { rows } = await this.readDb.query(query);
     return rows.map((row) => this.mapRowToEntity(row));
   }
 
@@ -92,7 +92,7 @@ export class LivestreamStore implements ILivestreamStore {
       SET status = $2, ended_at = $3
       WHERE id = $1
     `;
-    await this.db.query(query, [id, status, endedAt || null]);
+    await this.writeDb.query(query, [id, status, endedAt || null]);
   }
 
   async updateViewers(id: string, viewers: number): Promise<void> {
@@ -101,6 +101,6 @@ export class LivestreamStore implements ILivestreamStore {
       SET viewers = $2
       WHERE id = $1
     `;
-    await this.db.query(query, [id, viewers]);
+    await this.writeDb.query(query, [id, viewers]);
   }
 }

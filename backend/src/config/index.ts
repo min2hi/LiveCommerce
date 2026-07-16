@@ -22,6 +22,11 @@ export const config = {
     queue: process.env.RABBITMQ_QUEUE || 'order.queue',
     dlq: process.env.RABBITMQ_DLQ || 'order.dlq',
   },
+  kafka: {
+    brokers: process.env.KAFKA_BROKERS ? process.env.KAFKA_BROKERS.split(',') : ['localhost:9092'],
+    topic: process.env.KAFKA_ORDER_TOPIC || 'order.events',
+    groupId: process.env.KAFKA_GROUP_ID || 'livecommerce-order-workers',
+  },
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',
     llmModel: process.env.OPENAI_LLM_MODEL || 'gpt-4o-mini',

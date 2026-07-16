@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Key, Envelope } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
-import { Canvas3DBackground } from "@/components/ui/canvas-3d-background";
+import { BackgroundBeams } from "@/components/ui/background-beams";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,7 +26,8 @@ export default function LoginPage() {
     setErrorMsg("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
+      const { buildApiUrl } = await import("@/lib/api");
+      const res = await fetch(buildApiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -35,13 +36,13 @@ export default function LoginPage() {
       if (res.ok) {
         const data = await res.json();
         localStorage.setItem("buyer_token", data.token);
-        router.push("/live/cc9db567-1d5e-45a2-8544-c3a098f6718f");
+        router.push("/");
       } else {
         const data = await res.json().catch(() => ({}));
         setErrorMsg(data.error || "Authentication rejected.");
       }
     } catch (err) {
-      console.error("[Login] Connection failed:", err);
+      console.warn("[Login] Connection failed:", err);
       setErrorMsg("Connection failed. Please try again.");
     } finally {
       setLoading(false);
@@ -49,36 +50,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex bg-zinc-950 text-zinc-100 relative overflow-hidden font-sans">
+    <div className="min-h-[100dvh] flex bg-[#0d0f14] text-zinc-100 relative overflow-hidden font-sans">
       
-      {/* Ambient Breathing Background Mesh */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <Canvas3DBackground accent="emerald" centerX={0.46} />
-        <motion.div
-          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-emerald-500/10 blur-[120px]"
-          animate={{
-            x: [0, 40, -20, 0],
-            y: [0, -30, 40, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-cyan-500/10 blur-[120px]"
-          animate={{
-            x: [0, -40, 20, 0],
-            y: [0, 30, -40, 0],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </div>
+      {/* Aceternity Background Beams */}
+      <BackgroundBeams />
 
       {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] opacity-40 z-0 pointer-events-none"></div>
@@ -97,7 +72,7 @@ export default function LoginPage() {
           </Link>
 
           <div className="flex flex-col gap-6 max-w-[34ch]">
-            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-emerald-400 font-bold">
+            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-cyan-400 font-bold">
               Entry Portal
             </span>
             <h1 className="text-4xl lg:text-5xl font-bold tracking-tight leading-none text-white select-none">
@@ -156,7 +131,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="buyer@livecommerce.com"
-                  className="h-11 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400/50 placeholder-zinc-600 transition-all font-medium"
+                  className="h-11 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400/50 placeholder-zinc-600 transition-all font-medium"
                 />
               </div>
 
@@ -172,7 +147,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="h-11 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-400 focus:border-emerald-400/50 placeholder-zinc-600 transition-all font-medium"
+                  className="h-11 bg-zinc-900/60 border border-white/5 rounded-full px-5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400/50 placeholder-zinc-600 transition-all font-medium"
                 />
               </div>
 
@@ -200,7 +175,7 @@ export default function LoginPage() {
 
             <p className="text-center text-xs text-zinc-400">
               New user?{" "}
-              <Link href="/register" className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors hover:underline">
+              <Link href="/register" className="font-semibold text-cyan-400 hover:text-cyan-300 transition-colors hover:underline">
                 Create an account
               </Link>
             </p>

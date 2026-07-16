@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Sparkle, Key, Envelope } from "@phosphor-icons/react";
 import { motion } from "motion/react";
+import { buildApiUrl } from "../lib/api";
 
 interface StreamerLoginPageProps {
   onLoginSuccess: (token: string) => void;
@@ -23,7 +24,7 @@ export function StreamerLoginPage({ onLoginSuccess }: StreamerLoginPageProps) {
     setErrorMsg("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
+      const res = await fetch(buildApiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

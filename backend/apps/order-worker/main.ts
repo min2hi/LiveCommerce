@@ -1,11 +1,16 @@
 import 'dotenv/config';
+import { initializeTracing } from '../../src/infrastructure/tracing';
+initializeTracing('livecommerce-order-worker');
+
 import { getRabbitMQChannel, closeRabbitMQConnection } from '../../src/infrastructure/queue';
-import { getDbPool, closeDbPool } from '../../src/infrastructure/database';
+import { getWriteDbPool, getReadDbPool, closeDbPool } from '../../src/infrastructure/database';
 import { getRedisClient, closeRedisClient } from '../../src/infrastructure/cache';
 import { OrderStore } from '../../src/stores/postgres/order.store';
 import { ProductStore } from '../../src/stores/postgres/product.store';
 import { StockStore } from '../../src/stores/redis/stock.store';
 import { OrderQueue } from '../../src/stores/rabbitmq/order.queue';
+import { KafkaOrderQueue } from '../../src/stores/kafka/order.queue';
+import type { IOrderQueue } from '../../src/domain/interfaces';
 import { OrderWorkerService } from '../../src/services/order-worker.service';
 import { createLogger } from '../../shared/logger';
 
@@ -15,15 +20,26 @@ async function startWorker(): Promise<void> {
   logger.info('[Worker] Starting Order Worker process...');
 
   // Initialize DB, Redis and RabbitMQ connections
-  const dbPool = getDbPool();
+  const writeDbPool = getWriteDbPool();
+  const readDbPool = getReadDbPool();
   const redisClient = await getRedisClient();
-  const channel = await getRabbitMQChannel();
+  
+  let orderQueue: IOrderQueue;
+  if (process.env.USE_KAFKA === 'true') {
+    const kafkaQueue = new KafkaOrderQueue();
+    await kafkaQueue.connectConsumer();
+    orderQueue = kafkaQueue;
+    logger.info(`[Worker] Using Kafka KRaft for event streaming`);
+  } else {
+    const channel = await getRabbitMQChannel();
+    orderQueue = new OrderQueue(channel);
+    logger.info(`[Worker] Using RabbitMQ for event streaming`);
+  }
 
   // Instantiate Stores
-  const orderStore = new OrderStore(dbPool);
-  const productStore = new ProductStore(dbPool);
+  const orderStore = new OrderStore(writeDbPool, readDbPool);
+  const productStore = new ProductStore(writeDbPool, readDbPool);
   const stockStore = new StockStore(redisClient);
-  const orderQueue = new OrderQueue(channel);
 
   // Instantiate Saga Worker Service
   const workerService = new OrderWorkerService(orderStore, productStore, stockStore);
@@ -40,7 +56,11 @@ async function startWorker(): Promise<void> {
 async function shutdown(signal: string): Promise<void> {
   logger.info(`[Worker] ${signal} received. Closing all connections...`);
   try {
-    await closeRabbitMQConnection();
+    if (process.env.USE_KAFKA === 'true') {
+      // Need a global ref for this ideally, but process exit handles it gracefully usually
+    } else {
+      await closeRabbitMQConnection();
+    }
     await closeDbPool();
     await closeRedisClient();
     logger.info('[Worker] Shutdown complete.');

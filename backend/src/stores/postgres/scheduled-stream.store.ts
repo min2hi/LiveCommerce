@@ -3,7 +3,7 @@ import type { IScheduledStreamStore } from '../../domain/interfaces';
 import type { ScheduledStreamEntity } from '../../domain/entities';
 
 export class ScheduledStreamStore implements IScheduledStreamStore {
-  constructor(private readonly db: Pool) {}
+  constructor(private readonly writeDb: Pool, private readonly readDb: Pool = writeDb) {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapRowToEntity(row: any): ScheduledStreamEntity {
@@ -29,7 +29,7 @@ export class ScheduledStreamStore implements IScheduledStreamStore {
       VALUES ($1, $2, $3, $4, $5, 'UPCOMING')
       RETURNING id, shop_id, title, description, scheduled_time, banner_url, status, created_at, updated_at
     `;
-    const { rows } = await this.db.query(query, [
+    const { rows } = await this.writeDb.query(query, [
       data.shopId,
       data.title,
       data.description || null,
@@ -46,7 +46,7 @@ export class ScheduledStreamStore implements IScheduledStreamStore {
       JOIN shops s ON ss.shop_id = s.id
       WHERE ss.id = $1
     `;
-    const { rows } = await this.db.query(query, [id]);
+    const { rows } = await this.readDb.query(query, [id]);
     if (rows.length === 0) return null;
     return this.mapRowToEntity(rows[0]);
   }
@@ -59,7 +59,7 @@ export class ScheduledStreamStore implements IScheduledStreamStore {
       WHERE ss.status = 'UPCOMING' AND ss.scheduled_time > NOW()
       ORDER BY ss.scheduled_time ASC
     `;
-    const { rows } = await this.db.query(query);
+    const { rows } = await this.readDb.query(query);
     return rows.map((row) => this.mapRowToEntity(row));
   }
 
@@ -71,7 +71,7 @@ export class ScheduledStreamStore implements IScheduledStreamStore {
       WHERE ss.shop_id = $1
       ORDER BY ss.scheduled_time ASC
     `;
-    const { rows } = await this.db.query(query, [shopId]);
+    const { rows } = await this.readDb.query(query, [shopId]);
     return rows.map((row) => this.mapRowToEntity(row));
   }
 
@@ -81,7 +81,7 @@ export class ScheduledStreamStore implements IScheduledStreamStore {
       VALUES ($1, $2)
       ON CONFLICT (stream_id, user_id) DO NOTHING
     `;
-    await this.db.query(query, [streamId, userId]);
+    await this.writeDb.query(query, [streamId, userId]);
   }
 
   async removeReminder(streamId: string, userId: string): Promise<void> {
@@ -89,7 +89,7 @@ export class ScheduledStreamStore implements IScheduledStreamStore {
       DELETE FROM stream_reminders
       WHERE stream_id = $1 AND user_id = $2
     `;
-    await this.db.query(query, [streamId, userId]);
+    await this.writeDb.query(query, [streamId, userId]);
   }
 
   async getReminders(streamId: string): Promise<string[]> {
@@ -98,7 +98,7 @@ export class ScheduledStreamStore implements IScheduledStreamStore {
       FROM stream_reminders
       WHERE stream_id = $1
     `;
-    const { rows } = await this.db.query(query, [streamId]);
+    const { rows } = await this.readDb.query(query, [streamId]);
     return rows.map((row) => row.user_id);
   }
 
@@ -108,7 +108,7 @@ export class ScheduledStreamStore implements IScheduledStreamStore {
       FROM stream_reminders
       WHERE stream_id = $1 AND user_id = $2
     `;
-    const { rows } = await this.db.query(query, [streamId, userId]);
+    const { rows } = await this.readDb.query(query, [streamId, userId]);
     return rows.length > 0;
   }
 }

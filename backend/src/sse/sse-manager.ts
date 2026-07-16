@@ -117,6 +117,64 @@ export function broadcastShutdown(): void {
   log.info('Shutdown broadcast sent', { totalShops: clients.size });
 }
 
+// ── Buyer (Public) SSE Connections ────────────────────────────────────────
+
+// shopId → Set of active Buyer SSE Response objects (anonymous, no auth)
+const buyerClients = new Map<string, Set<Response>>();
+
+/**
+ * Register a public (unauthenticated) Buyer SSE client for a shop's livestream.
+ * Buyers only receive unidirectional stock/product updates — no admin telemetry.
+ */
+export function registerBuyerClient(shopId: string, req: Request, res: Response): void {
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  // Send initial connection confirmation
+  res.write('event: connected\ndata: {"status":"ok"}\n\n');
+
+  // Register in buyer Map
+  if (!buyerClients.has(shopId)) {
+    buyerClients.set(shopId, new Set());
+  }
+  buyerClients.get(shopId)!.add(res);
+  log.info('Buyer client connected', { shopId, total: buyerClients.get(shopId)!.size });
+
+  // Cleanup on disconnect
+  req.on('close', () => {
+    buyerClients.get(shopId)?.delete(res);
+    if (buyerClients.get(shopId)?.size === 0) {
+      buyerClients.delete(shopId);
+    }
+    log.info('Buyer client disconnected', { shopId, remaining: buyerClients.get(shopId)?.size ?? 0 });
+  });
+}
+
+/**
+ * Push a lightweight event to all Buyer SSE clients of a shop.
+ * Called by the Redis Pub/Sub subscriber when an order is confirmed.
+ */
+export function pushEventToBuyers(shopId: string, event: SseEvent): void {
+  const shopBuyers = buyerClients.get(shopId);
+  if (!shopBuyers || shopBuyers.size === 0) return;
+
+  const payload = `id: ${event.id}\nevent: ${event.event}\ndata: ${JSON.stringify(event.data)}\n\n`;
+
+  shopBuyers.forEach((res) => {
+    try {
+      res.write(payload);
+    } catch {
+      shopBuyers.delete(res); // Remove dead connection
+    }
+  });
+
+  log.info('Buyer event pushed', { shopId, event: event.event, buyers: shopBuyers.size });
+}
+
 // ── Internal Helpers ──────────────────────────────────────────────────────
 
 function replayEvents(shopId: string, lastEventId: string, res: Response): void {

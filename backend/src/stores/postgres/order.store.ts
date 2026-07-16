@@ -4,7 +4,7 @@ import type { OrderEntity } from '../../domain/entities';
 import type { OrderPendingEvent } from '../../domain/entities';
 
 export class OrderStore implements IOrderStore {
-  constructor(private readonly db: Pool) {}
+  constructor(private readonly writeDb: Pool, private readonly readDb: Pool = writeDb) {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapRowToEntity(row: any): OrderEntity {
@@ -38,7 +38,7 @@ export class OrderStore implements IOrderStore {
       event.idempotencyKey,
       event.traceId,
     ];
-    const { rows } = await this.db.query(query, values);
+    const { rows } = await this.writeDb.query(query, values);
     return this.mapRowToEntity(rows[0]);
   }
 
@@ -48,7 +48,7 @@ export class OrderStore implements IOrderStore {
       FROM orders
       WHERE idempotency_key = $1
     `;
-    const { rows } = await this.db.query(query, [key]);
+    const { rows } = await this.readDb.query(query, [key]);
     if (rows.length === 0) return null;
     return this.mapRowToEntity(rows[0]);
   }
@@ -59,6 +59,17 @@ export class OrderStore implements IOrderStore {
       SET status = $2, updated_at = NOW()
       WHERE id = $1
     `;
-    await this.db.query(query, [id, status]);
+    await this.writeDb.query(query, [id, status]);
+  }
+
+  async findByUserId(userId: string): Promise<OrderEntity[]> {
+    const query = `
+      SELECT id, user_id, product_id, shop_id, quantity, total_price, status, idempotency_key, trace_id, created_at, updated_at
+      FROM orders
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+    `;
+    const { rows } = await this.readDb.query(query, [userId]);
+    return rows.map(row => this.mapRowToEntity(row));
   }
 }

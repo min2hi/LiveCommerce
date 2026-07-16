@@ -5,6 +5,9 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
+import { SparklesCore } from "@/components/ui/sparkles";
+import { buildApiUrl } from "@/lib/api";
 
 interface LiveStream {
   id: string;
@@ -91,11 +94,11 @@ export function AsymmetricHero() {
   useEffect(() => {
     const fetchActiveStreams = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/livestreams/active");
+        const res = await fetch(buildApiUrl("/livestreams/active"));
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
-            const mapped: LiveStream[] = data.map((item: any) => ({
+            const mapped: LiveStream[] = data.map((item: { id: string; shopName?: string; shopId: string; title: string; viewers: number; }) => ({
               id: item.id,
               streamer: item.shopName || `Shop ${item.shopId.substring(0, 5)}`,
               title: item.title,
@@ -152,15 +155,13 @@ export function AsymmetricHero() {
               </span>
             </motion.div>
 
-            {/* Asymmetric Typography - Styled with high-end editorial focus */}
-            <motion.h1
-              className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.98] text-white mb-8 select-none"
-              variants={itemVariants}
-            >
-              <span className="block mb-2">The live</span>
-              <span className="block font-normal italic text-cyan-400 pl-4 md:pl-8">commerce</span>
-              <span className="block">interface.</span>
-            </motion.h1>
+            {/* Asymmetric Typography with Aceternity Text Generate Effect */}
+            <motion.div variants={itemVariants} className="mb-8 select-none">
+              <TextGenerateEffect
+                words="The live commerce interface."
+                className="text-5xl sm:text-6xl lg:text-7xl tracking-tight leading-[0.98] text-white [&_span:nth-child(3)]:text-cyan-400 [&_span:nth-child(3)]:italic [&_span:nth-child(3)]:font-normal"
+              />
+            </motion.div>
 
             <motion.p
               className="text-base text-zinc-400 leading-relaxed max-w-[42ch] mb-12 font-normal"
@@ -171,21 +172,33 @@ export function AsymmetricHero() {
 
             <motion.div className="flex flex-wrap items-center gap-4" variants={itemVariants}>
               <Link href={streams[activeIndex] ? streams[activeIndex].link : "/"} passHref className="w-full sm:w-auto">
-                <Button size="lg" className="w-full inline-flex items-center gap-2 group cursor-pointer bg-cyan-500 text-zinc-950 font-semibold border-none hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
-                  Enter Live Rooms
-                  <ArrowUpRight
-                    weight="bold"
-                    size={16}
-                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  />
-                </Button>
+                <div className="relative">
+                  {/* Sparkle particles behind CTA */}
+                  <div className="absolute -inset-4 pointer-events-none">
+                    <SparklesCore
+                      particleDensity={40}
+                      particleColor="#06b6d4"
+                      minSize={0.3}
+                      maxSize={1.2}
+                      speed={0.6}
+                    />
+                  </div>
+                  <Button size="lg" className="relative z-10 w-full inline-flex items-center gap-2 group cursor-pointer bg-cyan-500 text-zinc-950 font-semibold border-none hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                    Enter Live Rooms
+                    <ArrowUpRight
+                      weight="bold"
+                      size={16}
+                      className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    />
+                  </Button>
+                </div>
               </Link>
             </motion.div>
           </motion.div>
 
           {/* Column 2: Dynamic Interactive Livestream Card Stack & Registry List */}
           <div className="md:col-span-5 relative mt-12 md:mt-0 w-full max-w-[340px] md:max-w-[460px] mx-auto md:mx-0 flex flex-col justify-start">
-            
+
             {/* Visual Card Stack */}
             <div className="relative w-full h-[212px] md:h-[288px]">
               {streams.map((stream, idx) => {
@@ -215,11 +228,10 @@ export function AsymmetricHero() {
                       damping: 20,
                     }}
                     onClick={() => setActiveIndex(idx)}
-                    className={`absolute top-0 left-0 w-full h-full bg-[#181c25] rounded-2xl border transition-all duration-300 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] group ${
-                      isActive 
-                        ? "border-white/10 hover:border-cyan-500/50 cursor-pointer" 
+                    className={`absolute top-0 left-0 w-full h-full bg-[#181c25] rounded-2xl border transition-all duration-300 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] group ${isActive
+                        ? "border-white/10 hover:border-cyan-500/50 cursor-pointer"
                         : "border-white/5 cursor-pointer opacity-85 hover:opacity-100"
-                    }`}
+                      }`}
                   >
                     <Link href={stream.link} className={isActive ? "pointer-events-auto" : "pointer-events-none"}>
                       <div className="relative w-full h-full">
@@ -285,11 +297,10 @@ export function AsymmetricHero() {
                   <button
                     key={stream.id}
                     onClick={() => setActiveIndex(idx)}
-                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-300 cursor-pointer text-left ${
-                      isActive 
-                        ? "bg-cyan-500/[0.03] border-cyan-500/20 text-white shadow-[0_4px_12px_rgba(6,182,212,0.03)]" 
+                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-300 cursor-pointer text-left ${isActive
+                        ? "bg-cyan-500/[0.03] border-cyan-500/20 text-white shadow-[0_4px_12px_rgba(6,182,212,0.03)]"
                         : "bg-[#181c25]/10 border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-[#181c25]/20"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <span className={`font-mono text-[10px] font-bold ${isActive ? "text-cyan-400" : "text-zinc-700"}`}>
@@ -304,10 +315,9 @@ export function AsymmetricHero() {
                         </span>
                       </div>
                     </div>
-                    
-                    <span className={`text-[10px] font-mono font-bold flex items-center gap-1.5 px-2 py-1 rounded-md ${
-                      isActive ? "text-cyan-400 bg-cyan-500/10" : "text-zinc-600 bg-zinc-800/10"
-                    }`}>
+
+                    <span className={`text-[10px] font-mono font-bold flex items-center gap-1.5 px-2 py-1 rounded-md ${isActive ? "text-cyan-400 bg-cyan-500/10" : "text-zinc-600 bg-zinc-800/10"
+                      }`}>
                       <span className={`w-1 h-1 rounded-full ${isActive ? "bg-cyan-400 animate-pulse" : "bg-zinc-600"}`}></span>
                       {stream.viewers}
                     </span>
@@ -315,7 +325,7 @@ export function AsymmetricHero() {
                 );
               })}
             </div>
-            
+
           </div>
 
         </div>

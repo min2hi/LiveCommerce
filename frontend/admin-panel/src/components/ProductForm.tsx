@@ -3,6 +3,7 @@ import { SlidersHorizontal } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 
 import { Magnetic } from "@/components/ui/magnetic";
+import { buildApiUrl } from "../lib/api";
 
 interface ProductFormProps {
   selectedProductId: string | null;
@@ -35,7 +36,7 @@ export function ProductForm({ selectedProductId, onSuccess }: ProductFormProps) 
     setSuccessMsg("");
     setError("");
 
-    fetch("http://localhost:3000/api/products")
+    fetch(buildApiUrl("/products"))
       .then((res) => res.json())
       .then((data: Product[]) => {
         const found = data.find((p) => p.id === selectedProductId);
@@ -73,7 +74,7 @@ export function ProductForm({ selectedProductId, onSuccess }: ProductFormProps) 
     setSuccessMsg("");
 
     try {
-      const res = await fetch(`http://localhost:3000/api/products/${selectedProductId}/stock`, {
+      const res = await fetch(buildApiUrl(`/products/${selectedProductId}/stock`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

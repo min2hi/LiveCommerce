@@ -8,6 +8,10 @@
   "scripts": {
     "dev": "npx concurrently -k -p \"[{name}]\" -n \"buyer,streamer,admin\" -c \"cyan,magenta,yellow\" \"npm run buyer:dev\" \"npm run streamer:dev\" \"npm run admin:dev\"",
     "dev:all": "npx concurrently -k -p \"[{name}]\" -n \"backend,buyer,streamer,admin\" -c \"blue,cyan,magenta,yellow\" \"npm run backend:dev\" \"npm run buyer:dev\" \"npm run streamer:dev\" \"npm run admin:dev\"",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "prepare": "husky",
     "backend:dev": "npm run dev --workspace=backend",
     "backend:worker": "npm run dev:worker --workspace=backend",

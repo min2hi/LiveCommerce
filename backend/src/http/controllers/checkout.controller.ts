@@ -10,6 +10,8 @@ import type {
 import type { AuthenticatedRequest } from '../middlewares/auth.middleware';
 import type { OrderPendingEvent } from '../../domain/entities';
 
+const outOfStockCache = new Map<string, number>();
+
 export class CheckoutController {
   constructor(
     private readonly productStore: IProductStore,
@@ -30,8 +32,13 @@ export class CheckoutController {
     const idempotencyKey = (req.headers['x-idempotency-key'] as string) || req.body.idempotencyKey;
     const traceId = (req.headers['x-trace-id'] as string) || uuidv4();
 
-    if (!productId || !quantity || quantity <= 0) {
-      res.status(400).json({ error: 'Invalid checkout request details' });
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (!productId || !uuidRegex.test(productId)) {
+      res.status(400).json({ error: 'Invalid productId format' });
+      return;
+    }
+    if (!quantity || quantity <= 0 || quantity > 5) {
+      res.status(400).json({ error: 'Quantity must be between 1 and 5' });
       return;
     }
 
@@ -43,6 +50,13 @@ export class CheckoutController {
     }
 
     const dbIdempotencyKey = `${userId}:${idempotencyKey}`;
+
+    // 0. In-Memory Gate: Block if product is known to be out of stock (with 10s TTL)
+    const outOfStockTimestamp = outOfStockCache.get(productId);
+    if (outOfStockTimestamp && Date.now() - outOfStockTimestamp < 10000) {
+      res.status(409).json({ error: 'Product is out of stock (In-Memory Gate)' });
+      return;
+    }
 
     try {
       // 1. Check Idempotency Key in Redis
@@ -80,6 +94,7 @@ export class CheckoutController {
       const checkoutStatus = await this.stockStore.atomicCheckout(productId, userId, quantity);
 
       if (checkoutStatus === 'out_of_stock') {
+        outOfStockCache.set(productId, Date.now()); // Tripped the circuit breaker
         res.status(409).json({ error: 'Product is out of stock' });
         return;
       }

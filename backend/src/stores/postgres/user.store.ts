@@ -3,7 +3,7 @@ import type { IUserStore } from '../../domain/interfaces';
 import type { UserEntity } from '../../domain/entities';
 
 export class UserStore implements IUserStore {
-  constructor(private readonly db: Pool) {}
+  constructor(private readonly writeDb: Pool, private readonly readDb: Pool = writeDb) {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapRowToEntity(row: any): UserEntity {
@@ -24,7 +24,7 @@ export class UserStore implements IUserStore {
       FROM users
       WHERE id = $1
     `;
-    const { rows } = await this.db.query(query, [id]);
+    const { rows } = await this.readDb.query(query, [id]);
     if (rows.length === 0) return null;
     return this.mapRowToEntity(rows[0]);
   }
@@ -35,7 +35,7 @@ export class UserStore implements IUserStore {
       FROM users
       WHERE email = $1
     `;
-    const { rows } = await this.db.query(query, [email]);
+    const { rows } = await this.readDb.query(query, [email]);
     if (rows.length === 0) return null;
     return this.mapRowToEntity(rows[0]);
   }
@@ -47,7 +47,7 @@ export class UserStore implements IUserStore {
       RETURNING id, username, email, password_hash, role, created_at, updated_at
     `;
     const values = [data.username, data.email, data.passwordHash, data.role];
-    const { rows } = await this.db.query(query, values);
+    const { rows } = await this.writeDb.query(query, values);
     return this.mapRowToEntity(rows[0]);
   }
 }

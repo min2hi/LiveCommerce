@@ -4,5 +4,6 @@ import type { AiController } from '../controllers/ai.controller';
 export function getAiRouter(aiController: AiController): Router {
   const router = Router();
   router.post('/chat', aiController.chat);
+  router.get('/debug/stress', aiController.stressTest);
   return router;
 }

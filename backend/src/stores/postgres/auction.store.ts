@@ -3,7 +3,7 @@ import type { IAuctionStore } from '../../domain/interfaces';
 import type { AuctionEntity, AuctionBidEntity } from '../../domain/entities';
 
 export class AuctionStore implements IAuctionStore {
-  constructor(private readonly db: Pool) {}
+  constructor(private readonly writeDb: Pool, private readonly readDb: Pool = writeDb) {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapRowToEntity(row: any): AuctionEntity {
@@ -46,7 +46,7 @@ export class AuctionStore implements IAuctionStore {
       VALUES ($1, $2, $3, $4, $4, $5, 'PENDING')
       RETURNING *
     `;
-    const { rows } = await this.db.query(query, [
+    const { rows } = await this.writeDb.query(query, [
       data.shopId,
       data.productId || null,
       data.title,
@@ -58,7 +58,7 @@ export class AuctionStore implements IAuctionStore {
 
   async findById(id: string): Promise<AuctionEntity | null> {
     const query = `SELECT * FROM auctions WHERE id = $1`;
-    const { rows } = await this.db.query(query, [id]);
+    const { rows } = await this.readDb.query(query, [id]);
     if (rows.length === 0) return null;
     return this.mapRowToEntity(rows[0]);
   }
@@ -70,7 +70,7 @@ export class AuctionStore implements IAuctionStore {
       ORDER BY started_at DESC
       LIMIT 1
     `;
-    const { rows } = await this.db.query(query, [shopId]);
+    const { rows } = await this.readDb.query(query, [shopId]);
     if (rows.length === 0) return null;
     return this.mapRowToEntity(rows[0]);
   }
@@ -82,11 +82,11 @@ export class AuctionStore implements IAuctionStore {
           started_at = CASE WHEN $2 = 'ACTIVE' THEN NOW() ELSE started_at END
       WHERE id = $1
     `;
-    await this.db.query(query, [id, status]);
+    await this.writeDb.query(query, [id, status]);
   }
 
   async placeBid(auctionId: string, userId: string, amount: number): Promise<AuctionBidEntity> {
-    const client = await this.db.connect();
+    const client = await this.writeDb.connect();
     try {
       await client.query('BEGIN');
 
@@ -137,7 +137,7 @@ export class AuctionStore implements IAuctionStore {
       ORDER BY bid_amount DESC
       LIMIT 1
     `;
-    const { rows } = await this.db.query(query, [auctionId]);
+    const { rows } = await this.readDb.query(query, [auctionId]);
     if (rows.length === 0) return null;
     return this.mapBidRowToEntity(rows[0]);
   }
@@ -149,7 +149,7 @@ export class AuctionStore implements IAuctionStore {
       ORDER BY bid_amount DESC, created_at DESC
       LIMIT $2
     `;
-    const { rows } = await this.db.query(query, [auctionId, limit]);
+    const { rows } = await this.readDb.query(query, [auctionId, limit]);
     return rows.map((row) => this.mapBidRowToEntity(row));
   }
 
@@ -159,6 +159,6 @@ export class AuctionStore implements IAuctionStore {
       SET status = 'COMPLETED', ended_at = NOW(), winner_id = $2
       WHERE id = $1
     `;
-    await this.db.query(query, [id, winnerId || null]);
+    await this.writeDb.query(query, [id, winnerId || null]);
   }
 }

@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { Play, Bell } from "@phosphor-icons/react";
+import { GlowingCard } from "@/components/ui/card-hover-effect";
+import { MovingBorder } from "@/components/ui/moving-border";
+import { buildApiUrl } from "@/lib/api";
 
 interface LiveRoom {
   id: string;
@@ -96,11 +99,11 @@ export function BentoGrid() {
   useEffect(() => {
     const fetchActiveStreams = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/livestreams/active");
+        const res = await fetch(buildApiUrl("/livestreams/active"));
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
-            const mapped: LiveRoom[] = data.map((item: any, idx: number) => {
+            const mapped: LiveRoom[] = data.map((item: { id: string; title: string; shopName?: string; shopId: string; viewers: number; }, idx: number) => {
               const variant = idx === 0 ? "hero" : idx === 1 ? "standard" : idx === 2 ? "wide" : "tinted";
               return {
                 id: item.id,
@@ -199,6 +202,7 @@ export function BentoGrid() {
                 key={room.id}
                 className={`${(isHero || isWide) ? "md:col-span-2" : "md:col-span-1"} block cursor-pointer`}
               >
+                <GlowingCard containerClassName="h-full">
                 <motion.div
                   className={`group relative w-full h-full overflow-hidden rounded-2xl flex flex-col justify-end p-6 border transition-all duration-300 ${isTinted
                       ? "bg-[#161b27] border-white/10 text-white shadow-sm hover:border-white/20"
@@ -227,15 +231,22 @@ export function BentoGrid() {
                     {/* Live & Metadata Badges */}
                     <div className="flex items-center justify-between gap-3 mb-4">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider font-mono ${room.duration
-                              ? "bg-[#ef4444] text-white"
-                              : "bg-white/10 text-zinc-300"
-                            }`}
-                        >
-                          {room.duration && <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse mr-1"></span>}
-                          {room.duration ? "LIVE" : "UPCOMING"}
-                        </span>
+                        {room.duration ? (
+                          <MovingBorder
+                            duration={3}
+                            borderRadius="0.25rem"
+                            containerClassName="w-16 h-[22px]"
+                            borderClassName="bg-[radial-gradient(#ef4444_40%,transparent_60%)]"
+                            className="bg-[#ef4444] text-white flex items-center justify-center w-full h-full text-[9px] font-bold uppercase tracking-wider font-mono shadow-[0_0_10px_rgba(239,68,68,0.4)]"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse mr-1"></span>
+                            LIVE
+                          </MovingBorder>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider font-mono bg-white/10 text-zinc-300 h-[22px]">
+                            UPCOMING
+                          </span>
+                        )}
 
                         {room.duration && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[9px] font-bold text-zinc-300 font-mono">
@@ -331,6 +342,7 @@ export function BentoGrid() {
                     </div>
                   )}
                 </motion.div>
+                </GlowingCard>
               </Link>
             );
           })}

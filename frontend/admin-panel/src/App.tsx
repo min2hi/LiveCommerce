@@ -5,6 +5,7 @@ import { ProductForm } from "./components/ProductForm";
 import { AdminLoginPage } from "./components/AdminLoginPage";
 import { Pulse, Lightning, Warning, Users, ChartLine, Broadcast } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
+import { buildApiUrl } from "./lib/api";
 
 interface LogEntry {
   time: string;
@@ -25,18 +26,27 @@ export default function App() {
     { time: "00:58:45", system: "SyncConsole", message: "Admin session authorized via JWT token.", type: "success" },
   ]);
 
+  const [metrics, setMetrics] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalUsers: 0,
+    activeViewers: 0
+  });
+
+  const [accounts, setAccounts] = useState<{id: string, user: string, email: string, role: string, status: string, color: string}[]>([]);
+
   const handleSuccess = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
   useEffect(() => {
     let eventSource: EventSource | null = null;
-    let reconnectTimeout: any;
+    let reconnectTimeout: ReturnType<typeof setTimeout>;
 
     const connectSSE = () => {
       if (!token) return;
 
-      eventSource = new EventSource(`http://localhost:3000/api/sse/streamer?token=${token}`);
+      eventSource = new EventSource(buildApiUrl(`/sse/streamer?token=${token}`));
 
       eventSource.onerror = (err) => {
         console.error("Admin SSE error, reconnecting:", err);
@@ -85,10 +95,38 @@ export default function App() {
       setLogs((prev) => [...prev, newEntry].slice(-50));
     }, 4500);
 
+    // Real metrics fetching
+    const fetchMetrics = async () => {
+      if (!token) return;
+      try {
+        const res = await fetch(buildApiUrl("/metrics/admin"), {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setMetrics(data);
+        }
+
+        const usersRes = await fetch(buildApiUrl("/metrics/users"), {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (usersRes.ok) {
+          const usersData = await res.json();
+          setAccounts(usersData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch metrics", err);
+      }
+    };
+    
+    fetchMetrics();
+    const metricsInterval = setInterval(fetchMetrics, 10000);
+
     return () => {
       if (eventSource) eventSource.close();
       clearTimeout(reconnectTimeout);
       clearInterval(interval);
+      clearInterval(metricsInterval);
     };
   }, [token]);
 
@@ -165,9 +203,9 @@ export default function App() {
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: "Total Revenue", val: "$3,887.00", desc: "+12.4% vs last interval", icon: <ChartLine size={18} className="text-emerald-500" /> },
-                  { label: "Conversion Rate", val: "8.4%", desc: "13 confirmed orders", icon: <Pulse size={18} className="text-indigo-500" /> },
-                  { label: "Active Viewers", val: "12,408", desc: "Socket connections stable", icon: <Users size={18} className="text-cyan-500" /> },
+                  { label: "Total Revenue", val: `$${metrics.totalRevenue.toFixed(2)}`, desc: `${metrics.totalOrders} total confirmed orders`, icon: <ChartLine size={18} className="text-emerald-500" /> },
+                  { label: "Registered Users", val: metrics.totalUsers.toLocaleString(), desc: "Active buyer accounts", icon: <Pulse size={18} className="text-indigo-500" /> },
+                  { label: "Active Viewers", val: metrics.activeViewers.toLocaleString(), desc: "Live streams current load", icon: <Users size={18} className="text-cyan-500" /> },
                   { label: "Telemetry Latency", val: "2.4ms", desc: "Redis Pub/Sub healthy", icon: <Broadcast size={18} className="text-amber-500" /> }
                 ].map((stat, idx) => (
                   <div key={idx} className="bg-white p-5 rounded-2xl border border-zinc-200/80 shadow-sm flex flex-col justify-between h-32">
@@ -257,12 +295,7 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody className="text-xs text-zinc-700 divide-y divide-zinc-100">
-                    {[
-                      { user: "admin_root", email: "root@livecommerce.com", role: "ADMINISTRATOR", status: "Active", color: "bg-emerald-400" },
-                      { user: "streamer1", email: "streamer1@livecommerce.com", role: "STREAMER", status: "Active", color: "bg-emerald-400" },
-                      { user: "live_operator", email: "op@livecommerce.com", role: "OPERATOR", status: "Active", color: "bg-emerald-400" },
-                      { user: "tech_spec", email: "tech@livecommerce.com", role: "DEVELOPER", status: "Maintenance", color: "bg-amber-400" }
-                    ].map((row, idx) => (
+                    {accounts.length > 0 ? accounts.map((row, idx) => (
                       <tr key={idx} className="hover:bg-zinc-50/50">
                         <td className="p-4 pl-6 font-bold text-zinc-900">{row.user}</td>
                         <td className="p-4 text-zinc-500">{row.email}</td>
@@ -274,7 +307,9 @@ export default function App() {
                           </span>
                         </td>
                       </tr>
-                    ))}
+                    )) : (
+                      <tr><td colSpan={4} className="p-4 text-center text-zinc-400">Loading accounts...</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -358,9 +393,9 @@ function FlashSalesManager() {
   const token = localStorage.getItem("admin_token");
 
   const fetchProducts = () => {
-    fetch("http://localhost:3000/api/products")
+    fetch(buildApiUrl("/products"))
       .then((res) => res.json())
-      .then((data: any[]) => {
+      .then((data: { id: string; name: string; price: string; stock: string; isFlashSale: boolean }[]) => {
         setProducts(
           data.map((p) => ({
             id: p.id,
@@ -389,7 +424,7 @@ function FlashSalesManager() {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:3000/api/products/${prodId}/flash-sale`, {
+      const res = await fetch(buildApiUrl(`/products/${prodId}/flash-sale`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -401,8 +436,8 @@ function FlashSalesManager() {
         throw new Error("Failed to toggle promotion status");
       }
       fetchProducts();
-    } catch (err: any) {
-      setErrorMsg(err.message || "Request failed");
+    } catch (err: unknown) {
+      setErrorMsg((err as Error).message || "Request failed");
     }
   };
 
