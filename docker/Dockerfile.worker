@@ -13,7 +13,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/
-RUN npm pkg delete scripts.prepare && npm ci --omit=dev --legacy-peer-deps
+RUN npm pkg delete scripts.prepare && npm pkg delete scripts.prepare -w backend && npm ci --omit=dev --legacy-peer-deps
 COPY --from=builder /app/backend/dist ./backend/dist
 
 CMD ["node", "backend/dist/apps/order-worker/main.js"]
