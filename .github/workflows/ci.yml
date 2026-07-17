@@ -53,7 +53,7 @@ jobs:
           # Build services
           npm run build
           # Start dev runner
-          npm run dev &
+          npm run dev:all &
           # Wait for ports to be active
           sleep 15
 
