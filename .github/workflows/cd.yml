@@ -54,7 +54,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push API Server image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./docker/Dockerfile.api
@@ -64,7 +64,7 @@ jobs:
           cache-from: type=gha
 
       - name: Build and push Order Worker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./docker/Dockerfile.worker
