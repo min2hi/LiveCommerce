@@ -116,36 +116,34 @@ export async function* runAgentStream(
       loopCount++;
 
       // We bind tools to model so LLM can call them
-      const modelWithTools = chatModel.bind({
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'check_stock',
-              description: 'Kiểm tra số lượng tồn kho thực tế của sản phẩm đang livestream.',
-              parameters: { type: 'object', properties: {} },
-            },
+      const modelWithTools = chatModel.bindTools([
+        {
+          type: 'function',
+          function: {
+            name: 'check_stock',
+            description: 'Kiểm tra số lượng tồn kho thực tế của sản phẩm đang livestream.',
+            parameters: { type: 'object', properties: {} },
           },
-          {
-            type: 'function',
-            function: {
-              name: 'get_product_info',
-              description:
-                'Lấy chi tiết thông số kỹ thuật, tính năng và thông tin sản phẩm từ cơ sở dữ liệu tri thức của shop.',
-              parameters: {
-                type: 'object',
-                properties: {
-                  query: {
-                    type: 'string',
-                    description: 'Câu truy vấn mô tả đặc tính sản phẩm cần tìm kiếm.',
-                  },
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'get_product_info',
+            description:
+              'Lấy chi tiết thông số kỹ thuật, tính năng và thông tin sản phẩm từ cơ sở dữ liệu tri thức của shop.',
+            parameters: {
+              type: 'object',
+              properties: {
+                query: {
+                  type: 'string',
+                  description: 'Câu truy vấn mô tả đặc tính sản phẩm cần tìm kiếm.',
                 },
-                required: ['query'],
               },
+              required: ['query'],
             },
           },
-        ],
-      });
+        },
+      ]);
 
       const response = await modelWithTools.invoke(messages);
 
