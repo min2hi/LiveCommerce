@@ -36,6 +36,8 @@ playwright/.local-browsers/
 # Editor / IDE Configs
 .idea/
 .vscode/
+.agents/
+.cursorrules
 *.suo
 *.ntvs*
 *.njsproj
