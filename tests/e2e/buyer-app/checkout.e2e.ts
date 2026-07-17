@@ -60,19 +60,21 @@ test.describe("Flash Sale Checkout Flow", () => {
   });
 
   test("buyer can checkout during flash sale", async ({ page }) => {
-    const checkoutButton = page.locator('button:has-text("Initiate Checkout")');
+    const checkoutButton = page.locator('button:has-text("MUA NGAY")');
     await expect(checkoutButton).toBeVisible();
     await checkoutButton.click();
 
     // Expect transition to success state
-    await expect(page.locator("text=Order Confirmed")).toBeVisible({
+    await expect(page.locator("text=Đặt Hàng Thành Công!")).toBeVisible({
       timeout: 15000,
     });
   });
 
   test("AI Shopping Assistant streams response", async ({ page }) => {
     // Switch to AI Assistant tab
-    const aiTabButton = page.locator('button:has-text("AI Assistant")');
+    const aiTabButton = page.locator(
+      'button[aria-label="Toggle AI Assistant"]',
+    );
     await aiTabButton.click();
 
     // Verify greeting is visible
@@ -101,7 +103,7 @@ test.describe("Flash Sale Checkout Flow", () => {
   test("double-click does not create duplicate order due to UI disabling and idempotency", async ({
     page,
   }) => {
-    const checkoutButton = page.locator('button:has-text("Initiate Checkout")');
+    const checkoutButton = page.locator('button:has-text("MUA NGAY")');
     await expect(checkoutButton).toBeVisible();
 
     // Double click to trigger click and test client double-click prevention
@@ -109,7 +111,9 @@ test.describe("Flash Sale Checkout Flow", () => {
 
     // Verify checkout succeeds or rate limit message appears
     await expect(
-      page.locator("text=Order Confirmed").or(page.locator("text=TOO FAST")),
+      page
+        .locator("text=Đặt Hàng Thành Công!")
+        .or(page.locator("text=Hệ thống đang quá tải")),
     ).toBeVisible({ timeout: 15000 });
   });
 });
