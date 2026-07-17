@@ -11,6 +11,9 @@ export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: "**/*.e2e.ts",
 
+  // Global test timeout: 2 minutes to allow Next.js dev server compilation
+  timeout: 120000,
+
   // Run tests sequentially to avoid rate limiter conflicts in dev
   fullyParallel: false,
 
