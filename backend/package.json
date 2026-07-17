@@ -29,8 +29,8 @@
     "migrate:down": "node migrate.js down"
   },
   "dependencies": {
-    "@langchain/core": "^0.3.0",
-    "@langchain/openai": "^0.3.0",
+    "@langchain/core": "^1.2.3",
+    "@langchain/openai": "^1.5.5",
     "@langchain/pgvector": "*",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/auto-instrumentations-node": "^0.78.0",
@@ -41,8 +41,8 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "kafkajs": "^2.2.4",
-    "langchain": "^0.3.0",
-    "langsmith": "^0.2.0",
+    "langchain": "^1.5.3",
+    "langsmith": "^0.8.3",
     "openai": "^4.77.0",
     "pg": "^8.13.1",
     "prom-client": "^15.1.3",
