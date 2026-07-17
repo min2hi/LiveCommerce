@@ -8,18 +8,21 @@ name: CD — Deploy to Production
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # Allow manual trigger from GitHub UI
+  workflow_dispatch: # Allow manual trigger from GitHub UI
 
 # Prevent concurrent deployments
 concurrency:
   group: deploy-production
-  cancel-in-progress: false  # Never cancel a running deployment
+  cancel-in-progress: false # Never cancel a running deployment
 
 jobs:
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
-    environment: production  # Requires manual approval (set in GitHub Settings)
+    environment: production # Requires manual approval (set in GitHub Settings)
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -74,10 +77,10 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host:     ${{ secrets.VPS_HOST }}
+          host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key:      ${{ secrets.VPS_SSH_KEY }}
-          port:     ${{ secrets.VPS_PORT || 22 }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             set -e  # Exit on any error
 
