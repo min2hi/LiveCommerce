@@ -22,7 +22,7 @@ export function initializeChatSocket(server: HttpServer): SocketIOServer {
     socket.on('join_room', (data: { roomId: string; username?: string }) => {
       const { roomId } = data;
       if (!roomId) return;
-      socket.join(roomId);
+      void socket.join(roomId);
       logger.info(`[Socket.io] Client ${socket.id} joined room ${roomId}`);
     });
 
@@ -41,8 +41,10 @@ export function initializeChatSocket(server: HttpServer): SocketIOServer {
 
       // Save to Redis history
       getRedisClient().then(redis => {
-        redis.rPush(`chat:history:${roomId}`, JSON.stringify(msgObj));
-        redis.lTrim(`chat:history:${roomId}`, -50, -1); // Keep last 50 messages
+        return Promise.all([
+          redis.rPush(`chat:history:${roomId}`, JSON.stringify(msgObj)),
+          redis.lTrim(`chat:history:${roomId}`, -50, -1) // Keep last 50 messages
+        ]);
       }).catch(err => logger.error('Redis chat history error:', err));
     });
 

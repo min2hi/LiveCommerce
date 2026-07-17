@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useCallback, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Fire } from "@phosphor-icons/react";
 import useSWR from "swr";
 import { CheckoutButton } from "../checkout-button";
 import { PurchaseModal } from "../checkout/purchase-modal";
@@ -36,6 +38,7 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const [timeLeft, setTimeLeft] = useState("08:00");
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  const [fomoToasts, setFomoToasts] = useState<{ id: string; timestamp: number }[]>([]);
 
   // Stable callback to handle SSE stock_updated events
   const handleStockUpdate = useCallback(
@@ -58,6 +61,16 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
           },
           { revalidate: false } // Don't refetch — trust the server push
         );
+
+        // Trigger FOMO Toast
+        const toastId = `fomo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        setFomoToasts((prev) => [...prev, { id: toastId, timestamp: Date.now() }]);
+        
+        // Auto remove toast after 3.5 seconds
+        setTimeout(() => {
+          setFomoToasts((prev) => prev.filter((t) => t.id !== toastId));
+        }, 3500);
+
       } catch (err) {
         console.error("[ProductShowcase] Failed to parse stock_updated event:", err);
       }
@@ -135,6 +148,29 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
           <span className="text-[10px] font-mono text-zinc-500 bg-white/5 px-2 py-0.5 rounded-full">
             Flash Sale
           </span>
+        </div>
+
+        {/* Fomo Toasts Area */}
+        <div className="absolute top-16 left-0 right-0 z-50 pointer-events-none flex flex-col gap-2 items-center px-4">
+          <AnimatePresence>
+            {fomoToasts.map((toast) => (
+              <motion.div
+                key={toast.id}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="bg-black/80 backdrop-blur-md border border-cyan-500/30 text-white px-4 py-2.5 rounded-full flex items-center gap-2.5 shadow-[0_4px_20px_rgba(6,182,212,0.25)]"
+              >
+                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-600 to-cyan-400 flex items-center justify-center">
+                  <Fire size={14} weight="fill" className="text-white" />
+                </div>
+                <span className="text-xs font-bold whitespace-nowrap tracking-wide">
+                  Một khách hàng vừa chốt đơn!
+                </span>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
 
         {/* Product Image Showcase */}

@@ -3,7 +3,7 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { Resource } from '@opentelemetry/resources';
 
-export function initializeTracing(serviceName: string) {
+export function initializeTracing(serviceName: string): NodeSDK | null {
   // Check if tracing is enabled via environment variable
   if (process.env.ENABLE_TRACING !== 'true') {
     return null;

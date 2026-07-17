@@ -160,7 +160,8 @@ async function bootstrap(): Promise<void> {
   try {
     logger.info('Running pending database migrations...');
     await runner({
-      dbClient: writeDbPool as any,
+      // @ts-expect-error - node-pg-migrate expects a specific pg client type that conflicts in this monorepo
+      dbClient: writeDbPool,
       direction: 'up',
       dir: path.join(process.cwd(), 'migrations'),
       migrationsTable: 'pgmigrations',
@@ -288,7 +289,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
             logger.info('[API] Redis Pub/Sub Subscriber closed.');
           }
           if (process.env.USE_KAFKA === 'true') {
-            await (orderQueue as any).disconnect();
+            await (orderQueue as unknown as { disconnect: () => Promise<void> }).disconnect();
           } else {
             await closeRabbitMQConnection();
           }

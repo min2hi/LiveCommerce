@@ -11,7 +11,7 @@ export function getChatRouter(): Router {
       const history = await redis.lRange(`chat:history:${shopId}`, 0, -1);
       const parsed = history.map((item: string) => JSON.parse(item));
       res.json(parsed);
-    } catch (err) {
+    } catch {
       res.status(500).json({ error: 'Failed to fetch chat history' });
     }
   });

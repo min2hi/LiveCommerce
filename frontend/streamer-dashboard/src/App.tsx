@@ -23,7 +23,13 @@ export default function App() {
   const shopId = getShopIdFromToken(token);
 
   // Livestream states
-  const [streamSession, setStreamSession] = useState<Record<string, any> | null>(null);
+  interface StreamSession {
+    id: string;
+    shopId: string;
+    streamKey: string;
+    viewers: number;
+  }
+  const [streamSession, setStreamSession] = useState<StreamSession | null>(null);
   const [newStreamTitle, setNewStreamTitle] = useState("Premium Mech Keyboard Showcase & Drop");
   const [isStarting, setIsStarting] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
@@ -200,12 +206,12 @@ export default function App() {
                           <input 
                             type="text" 
                             readOnly 
-                            value={cred.val} 
+                            value={cred.val as string} 
                             className="flex-1 bg-black/60 border border-zinc-900 rounded-lg px-3 py-2 text-xs font-mono text-zinc-300 focus:outline-none"
                           />
                           <button 
                             type="button"
-                            onClick={() => navigator.clipboard.writeText(cred.val)}
+                            onClick={() => navigator.clipboard.writeText(cred.val as string)}
                             className="px-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-300 rounded-lg transition-colors active:scale-95 cursor-pointer flex items-center justify-center"
                           >
                             <Copy size={14} />

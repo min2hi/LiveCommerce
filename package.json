@@ -46,5 +46,12 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
     "prettier": "^3.9.4"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.2.3",
+    "langchain": "^1.5.3",
+    "langsmith": "^0.8.3",
+    "postcss": "^8.5.19",
+    "uuid": "^14.0.1"
   }
 }

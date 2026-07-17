@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+// eslint-disable-next-line no-restricted-imports
 import { Pool } from 'pg';
 import { createLogger } from '../../../shared/logger';
 
