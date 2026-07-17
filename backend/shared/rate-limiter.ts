@@ -47,7 +47,7 @@ export class SlidingWindowRateLimiter {
       .expire(key, Math.ceil(this.windowMs / 1000) + 1) // TTL cleanup
       .exec();
 
-    const currentCount = (results?.[1] as number) ?? 0;
+    const currentCount = (results?.[1] as unknown as number) ?? 0;
 
     // currentCount is BEFORE adding the current request
     return currentCount < this.limit;
