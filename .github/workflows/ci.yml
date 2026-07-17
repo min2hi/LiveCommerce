@@ -29,14 +29,15 @@ jobs:
       - name: Type Check Workspace
         run: npm run type-check
 
-      - name: Run Unit Tests
-        run: npm run test
-
       - name: Start Docker Services
         run: |
           docker compose up -d
           # Wait for services to be healthy
+          sleep 10
           docker compose ps
+
+      - name: Run Unit Tests
+        run: npm run test
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
