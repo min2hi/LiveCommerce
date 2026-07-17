@@ -37,7 +37,7 @@
     "@opentelemetry/exporter-trace-otlp-http": "^0.220.0",
     "@opentelemetry/resources": "^2.9.0",
     "@opentelemetry/sdk-node": "^0.220.0",
-    "amqplib": "^0.10.5",
+    "amqplib": "^2.0.1",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "kafkajs": "^2.2.4",
