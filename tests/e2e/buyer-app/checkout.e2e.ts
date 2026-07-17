@@ -64,6 +64,11 @@ test.describe("Flash Sale Checkout Flow", () => {
     await expect(checkoutButton).toBeVisible();
     await checkoutButton.click();
 
+    // Click confirm in the Purchase Modal
+    const confirmButton = page.locator('button:has-text("CHỐT ĐƠN NGAY")');
+    await expect(confirmButton).toBeVisible();
+    await confirmButton.click();
+
     // Expect transition to success state
     await expect(page.locator("text=Đặt Hàng Thành Công!")).toBeVisible({
       timeout: 15000,
@@ -94,9 +99,7 @@ test.describe("Flash Sale Checkout Flow", () => {
 
     // Wait for assistant response to stream and display mock response
     await expect(
-      page.locator(
-        "span:has-text('AI Shopping Assistant') + div:has-text('Mock AI')",
-      ),
+      page.locator("span:has-text('AI Assistant') + div:has-text('Mock AI')"),
     ).toBeVisible({ timeout: 15000 });
   });
 
@@ -105,9 +108,14 @@ test.describe("Flash Sale Checkout Flow", () => {
   }) => {
     const checkoutButton = page.locator('button:has-text("MUA NGAY")');
     await expect(checkoutButton).toBeVisible();
+    await checkoutButton.click();
 
-    // Double click to trigger click and test client double-click prevention
-    await checkoutButton.dblclick({ delay: 50 });
+    // Wait for Purchase Modal
+    const confirmButton = page.locator('button:has-text("CHỐT ĐƠN NGAY")');
+    await expect(confirmButton).toBeVisible();
+
+    // Double click the confirm button to test double-click prevention
+    await confirmButton.dblclick({ delay: 50 });
 
     // Verify checkout succeeds or rate limit message appears
     await expect(
