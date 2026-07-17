@@ -30,7 +30,7 @@ export function MetricsBentoGrid() {
     }
 
     let eventSource: EventSource | null = null;
-    let reconnectTimeout: NodeJS.Timeout;
+    let reconnectTimeout: ReturnType<typeof setTimeout>;
 
     const connectSSE = () => {
       setIsConnecting(true);

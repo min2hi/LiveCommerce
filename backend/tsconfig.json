@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "lib": ["ES2022"],
     "rootDir": "./",
     "outDir": "./dist",
@@ -10,13 +10,12 @@
     "strict": true,
     "strictNullChecks": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
-    "baseUrl": ".",
     "paths": {
-      "@src/*": ["src/*"],
-      "@shared/*": ["shared/*"],
-      "@apps/*": ["apps/*"],
+      "@src/*": ["./src/*"],
+      "@shared/*": ["./shared/*"],
+      "@apps/*": ["./apps/*"],
       "node-pg-migrate": ["../node_modules/node-pg-migrate/dist/bundle/index.d.ts"]
     }
   },
