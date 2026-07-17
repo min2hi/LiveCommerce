@@ -15,14 +15,14 @@
 
 LiveCommerce Core is the backend engine for a **Livestream E-commerce platform** — similar to TikTok Shop or Shopee Live. It solves the hardest engineering problems in social commerce:
 
-| Problem | Solution |
-|---|---|
-| 10,000 people buying the same item at once | Redis Lua Script (atomic, microsecond-fast) |
-| Bot spam flooding checkout | Sliding Window Rate Limiter |
-| Client double-click / network retry creating 2 orders | Idempotency Keys (Redis SET NX) |
-| DB insert fails after stock deducted | Compensation Transaction + Dead Letter Queue |
+| Problem                                                  | Solution                                                           |
+| -------------------------------------------------------- | ------------------------------------------------------------------ |
+| 10,000 people buying the same item at once               | Redis Lua Script (atomic, microsecond-fast)                        |
+| Bot spam flooding checkout                               | Sliding Window Rate Limiter                                        |
+| Client double-click / network retry creating 2 orders    | Idempotency Keys (Redis SET NX)                                    |
+| DB insert fails after stock deducted                     | Compensation Transaction + Dead Letter Queue                       |
 | Streamer's AI assistant answering wrong shop's questions | Multi-tenant Data Isolation (shop_id filter on all vector queries) |
-| Finding out where an order failed | Distributed Tracing via X-Trace-Id |
+| Finding out where an order failed                        | Distributed Tracing via X-Trace-Id                                 |
 
 ---
 
@@ -44,6 +44,7 @@ LiveCommerce Core is the backend engine for a **Livestream E-commerce platform**
 ```
 
 ### Flash Sale Flow
+
 ```
 Client → [Auth] → [RateLimit] → [Idempotency] → [Lua Atomic Checkout]
       → RabbitMQ → Worker → PostgreSQL INSERT
@@ -51,6 +52,7 @@ Client → [Auth] → [RateLimit] → [Idempotency] → [Lua Atomic Checkout]
 ```
 
 ### AI Chat Flow
+
 ```
 User Chat → [RateLimit] → [Guardrail] → LangChain ReAct Agent
           → [CheckStockTool (Redis)] | [GetProductInfoTool (pgvector)]
@@ -61,20 +63,20 @@ User Chat → [RateLimit] → [Guardrail] → LangChain ReAct Agent
 
 ## Tech Stack
 
-| Layer | Technology | Version |
-|---|---|---|
-| Runtime | Node.js | 22 LTS |
-| Language | TypeScript | 5.x |
-| Web Framework | Express.js | 4.x |
-| Primary Database | PostgreSQL | 16 |
-| Vector Database | pgvector | 0.7+ |
-| Cache & Locks | Redis | 7 Alpine |
-| Message Broker | RabbitMQ | 3.13 Management |
-| AI Orchestration | LangChain.js | 0.3+ |
-| AI LLM | OpenAI gpt-4o-mini | API v1 |
-| AI Embedding | text-embedding-3-small | API v1 |
-| AI Observability | LangSmith | 0.2+ |
-| Containerization | Docker Compose | v2 |
+| Layer            | Technology             | Version         |
+| ---------------- | ---------------------- | --------------- |
+| Runtime          | Node.js                | 22 LTS          |
+| Language         | TypeScript             | 5.x             |
+| Web Framework    | Express.js             | 4.x             |
+| Primary Database | PostgreSQL             | 16              |
+| Vector Database  | pgvector               | 0.7+            |
+| Cache & Locks    | Redis                  | 7 Alpine        |
+| Message Broker   | RabbitMQ               | 3.13 Management |
+| AI Orchestration | LangChain.js           | 0.3+            |
+| AI LLM           | OpenAI gpt-4o-mini     | API v1          |
+| AI Embedding     | text-embedding-3-small | API v1          |
+| AI Observability | LangSmith              | 0.2+            |
+| Containerization | Docker Compose         | v2              |
 
 ---
 
@@ -120,6 +122,7 @@ LiveCommerce/
 ## Getting Started
 
 ### Prerequisites
+
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Node.js 22 LTS](https://nodejs.org/)
 - [K6](https://k6.io/) (optional, for load testing)
@@ -148,6 +151,7 @@ docker compose up -d
 ```
 
 Verify all services are healthy:
+
 ```bash
 docker compose ps
 # Expected: postgres (healthy), redis (healthy), rabbitmq (healthy)
@@ -174,13 +178,13 @@ curl http://localhost:3000/health
 
 ## Key Endpoints (Planned — Phase 2)
 
-| Method | Endpoint | Pillar | Description |
-|---|---|---|---|
-| `POST` | `/api/auth/login` | — | Login, get JWT |
-| `POST` | `/api/checkout` | 2 | Flash Sale checkout |
-| `POST` | `/api/ai/chat` | 3 | AI chat (SSE stream) |
-| `POST` | `/api/knowledge/ingest` | 3 | Upload shop FAQ/docs |
-| `GET`  | `/api/sse/dashboard` | 4 | Real-time streamer dashboard |
+| Method | Endpoint                | Pillar | Description                  |
+| ------ | ----------------------- | ------ | ---------------------------- |
+| `POST` | `/api/auth/login`       | —      | Login, get JWT               |
+| `POST` | `/api/checkout`         | 2      | Flash Sale checkout          |
+| `POST` | `/api/ai/chat`          | 3      | AI chat (SSE stream)         |
+| `POST` | `/api/knowledge/ingest` | 3      | Upload shop FAQ/docs         |
+| `GET`  | `/api/sse/dashboard`    | 4      | Real-time streamer dashboard |
 
 ---
 
@@ -233,9 +237,32 @@ npm run infra:reset           # Wipe volumes + restart (WARNING: deletes data)
 To maintain production-grade codebase health, every developer (and AI assistant) must strictly follow these rules:
 
 1. **Continuous Validation:** After modifying or adding any code, you **MUST** run the validation suite to catch bugs early:
-   * Run type checking: `npm run backend:type-check` (verifies both application and test codes).
-   * Run code style check: `npm run format` / `npm run backend:format:check`.
-   * Run linter: `npm run backend:lint`.
-   * Run unit tests: `npm run backend:test`.
+   - Run type checking: `npm run backend:type-check` (verifies both application and test codes).
+   - Run code style check: `npm run format` / `npm run backend:format:check`.
+   - Run linter: `npm run backend:lint`.
+   - Run unit tests: `npm run backend:test`.
 2. **Zero-Tolerance Policy:** No code should be committed or pushed with active TypeScript errors, ESLint errors/warnings, or failing tests.
 3. **Investigate & Root Cause:** If a validation check fails, immediately pause, trace the root cause (such as path resolution issues, type conflicts, or incorrect type casting), and apply clean architectural fixes. Avoid temporary patches.
+
+# AI Agent Instructions & Guidelines
+
+## 1. Git Workflow & Collaboration
+
+CRITICAL: Do NOT push code directly to the `main` or `master` branch.
+When a user asks you to implement a feature, fix a bug, or push code, you MUST follow this Agile Pull Request workflow:
+
+1. Create and checkout a new branch: `git checkout -b feature/<name>` or `git checkout -b fix/<name>`
+2. Make your code changes and verify them locally (lint, test, build).
+3. Commit the changes: `git commit -m "feat: description"`
+4. Push the branch to the remote repository: `git push origin <branch-name>`
+5. Instruct the user to open a Pull Request (PR) on GitHub.
+
+Direct pushes to `main` are strictly forbidden as they bypass CI/CD checks (GitHub Actions) and Code Review processes. Always assume the `main` branch is protected.
+
+## 2. CI/CD & Testing
+
+- Before committing, always run local checks if requested or if fixing a CI issue:
+  - `npm run lint`
+  - `npm run type-check`
+  - `npm run test`
+- Do not use the "Push and Pray" method. Verify fixes locally before pushing.
