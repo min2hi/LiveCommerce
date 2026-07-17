@@ -42,12 +42,6 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Seed Database & Cache
-        run: |
-          # Wait a few seconds for postgres/redis to boot up
-          sleep 10
-          npx --workspace=backend ts-node seed-test-data.ts
-
       - name: Build and Start Applications in Background
         run: |
           # Build services
@@ -56,6 +50,12 @@ jobs:
           npm run dev:all &
           # Wait for ports to be active (timeout 90s)
           npx wait-on -t 90000 tcp:3000 tcp:3001 tcp:3002 tcp:3003
+
+      - name: Seed Database & Cache
+        run: |
+          # The database schema is created during backend bootstrap (dev:all)
+          # We wait until the ports are active before seeding
+          npx --workspace=backend ts-node seed-test-data.ts
 
       - name: Run Playwright E2E Tests
         run: npx playwright test --project=buyer-app-chromium
