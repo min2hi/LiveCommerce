@@ -25,7 +25,7 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # ── Step 1: Build & Push Docker Image to GHCR ──────────────────────
       - name: Log in to GitHub Container Registry
@@ -37,7 +37,7 @@ jobs:
 
       - name: Extract Docker metadata for API
         id: meta-api
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}/api-server
           tags: |
@@ -46,7 +46,7 @@ jobs:
 
       - name: Extract Docker metadata for Worker
         id: meta-worker
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}/order-worker
           tags: |
@@ -54,7 +54,7 @@ jobs:
             type=raw,value=latest
 
       - name: Build and push API Server image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./docker/Dockerfile.api
@@ -64,7 +64,7 @@ jobs:
           cache-from: type=gha
 
       - name: Build and push Order Worker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./docker/Dockerfile.worker

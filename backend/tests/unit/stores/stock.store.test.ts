@@ -8,7 +8,6 @@ describe('StockStore (Lua Script Integration)', () => {
   let stockStore: StockStore;
   const testProductId = 'test-prod-123';
   const testUserId = 'test-user-456';
-  const otherUserId = 'test-user-789';
 
   beforeAll(async () => {
     redisClient = createClient({
@@ -48,7 +47,7 @@ describe('StockStore (Lua Script Integration)', () => {
     expect(stock).toBe(4);
 
     const isMember = await redisClient.sIsMember(`product:buyers:${testProductId}`, testUserId);
-    expect(isMember).toBe(true);
+    expect(!!isMember).toBe(true);
   });
 
   it('should return out_of_stock if stock is 0', async () => {
@@ -105,6 +104,6 @@ describe('StockStore (Lua Script Integration)', () => {
     expect(stock).toBe(2);
 
     const isMember = await redisClient.sIsMember(`product:buyers:${testProductId}`, testUserId);
-    expect(isMember).toBe(false);
+    expect(!!isMember).toBe(false);
   });
 });
