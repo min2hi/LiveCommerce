@@ -11,7 +11,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-livecommerce}
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
-      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01_init.sql
     restart: unless-stopped
     healthcheck:
       test:
