@@ -23,6 +23,7 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
   const [status, setStatus] = useState<"idle" | "loading" | "waiting" | "success" | "error" | "rate_limited">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [retryCount, setRetryCount] = useState(0);
+  const idempotencyKeyRef = React.useRef<string>("");
 
   // Reset state when modal opens
   useEffect(() => {
@@ -30,6 +31,7 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
       setStatus("idle");
       setErrorMsg("");
       setRetryCount(0);
+      idempotencyKeyRef.current = `idem-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
   }, [isOpen]);
 
@@ -71,8 +73,9 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
           setTimeout(() => setStatus("idle"), 4000);
         }
       } else if (res.status === 409) {
+        const errorData = await res.json().catch(() => ({}));
         setStatus("error");
-        setErrorMsg("Rất tiếc, sản phẩm đã hết hàng.");
+        setErrorMsg(errorData.error || "Rất tiếc, sản phẩm đã hết hàng.");
         setTimeout(() => setStatus("idle"), 4000);
       } else {
         const errorData = await res.json().catch(() => ({}));
@@ -101,8 +104,10 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
       return;
     }
 
-    const idempotencyKey = `idem-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    await attemptCheckout(token, idempotencyKey, 0);
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = `idem-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+    await attemptCheckout(token, idempotencyKeyRef.current, 0);
   };
 
   if (!product) return null;

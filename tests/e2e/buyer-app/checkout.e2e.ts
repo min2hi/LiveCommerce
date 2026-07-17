@@ -117,11 +117,16 @@ test.describe("Flash Sale Checkout Flow", () => {
     // Double click the confirm button to test double-click prevention
     await confirmButton.dblclick({ delay: 50 });
 
-    // Verify checkout succeeds or rate limit message appears
+    // Verify checkout succeeds or rate limit/conflict message appears
     await expect(
       page
         .locator("text=Đặt Hàng Thành Công!")
-        .or(page.locator("text=Hệ thống đang quá tải")),
+        .or(page.locator("text=Hệ thống đang quá tải"))
+        .or(
+          page.locator(
+            "text=Conflict: This checkout request is already being processed",
+          ),
+        ),
     ).toBeVisible({ timeout: 15000 });
   });
 });

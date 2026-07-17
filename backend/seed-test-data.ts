@@ -84,12 +84,15 @@ async function seed() {
     }
 
     // 4. Initialize Redis Stock
-    const stockKey = `product:stock:${targetProductId}`;
     const buyersKey = `product:buyers:${targetProductId}`;
-
-    await redis.set(stockKey, '100');
     await redis.del(buyersKey);
-    console.log(`✅ Redis stock initialized to 100 for key: ${stockKey}`);
+
+    // Distribute 100 stock across 10 shards
+    for (let i = 0; i < 10; i++) {
+      const stockKey = `product:stock:${targetProductId}:${i}`;
+      await redis.set(stockKey, '10');
+    }
+    console.log(`✅ Redis stock initialized to 100 across 10 shards`);
     console.log(`✅ Redis buyers set cleared for key: ${buyersKey}`);
 
     // 5. Seed Scheduled Streams
