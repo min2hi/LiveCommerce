@@ -75,6 +75,7 @@ jobs:
 
       # ── Step 2: SSH Deploy to VPS ───────────────────────────────────────
       - name: Deploy via SSH
+        if: false # TODO: Xóa dòng này khi bạn đã cấu hình xong máy chủ VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
