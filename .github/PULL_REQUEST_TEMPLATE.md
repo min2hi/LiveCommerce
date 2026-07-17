@@ -1,49 +1,23 @@
-## 📋 Pull Request Checklist
+## Mô tả thay đổi (Description)
 
-### Description
-<!-- What does this PR do? Why is this change needed? -->
+<!-- Tóm tắt ngắn gọn tính năng bạn vừa làm hoặc lỗi bạn vừa sửa -->
 
-### Type of Change
-- [ ] 🚀 `feat` — New feature
-- [ ] 🐛 `fix` — Bug fix
-- [ ] ♻️ `refactor` — Code refactor (no behaviour change)
-- [ ] 🧪 `test` — Adding/updating tests
-- [ ] 📚 `docs` — Documentation only
-- [ ] 🔧 `chore` — Build/config/dependency changes
-- [ ] ⚡ `perf` — Performance improvement
-- [ ] 🔒 `security` — Security fix
+-
 
-### Related Issue
-Closes #<!-- issue number -->
+## Loại thay đổi (Type of change)
 
----
+- [ ] 🐛 Bug fix (Sửa lỗi)
+- [ ] ✨ New feature (Tính năng mới)
+- [ ] ♻️ Refactor (Tối ưu code, không thay đổi logic)
+- [ ] 📦 Dependency update (Cập nhật thư viện)
 
-### Code Quality Checklist
-- [ ] TypeScript: `npm run type-check` passes with zero errors
-- [ ] Lint: `npm run lint` passes with zero warnings
-- [ ] Tests: All existing unit tests still pass
-- [ ] New tests added for new business logic (if applicable)
+## Checklist (Tự kiểm tra trước khi Merge)
 
-### Architecture Checklist
-- [ ] Services do NOT import `pg`, `redis`, `amqplib` directly (must go via `stores/`)
-- [ ] Any vector search query has `WHERE shop_id = ?` filter (multi-tenant isolation)
-- [ ] Any new endpoint has Rate Limit middleware applied
-- [ ] Sensitive data (API keys, passwords) NOT hardcoded — using `config/index.ts`
+- [ ] Code đã được test kỹ dưới local (chạy mượt, không lỗi).
+- [ ] Không có console.log() hay code rác bị sót lại.
+- [ ] Đã chạy `npm run type-check` và `npm run lint` Pass 100%.
+- [ ] Tính năng này không làm ảnh hưởng (Break) các chức năng cũ.
 
-### Flash Sale / High Concurrency (if applicable)
-- [ ] Redis operations are atomic (Lua script or pipeline)
-- [ ] Idempotency key checked for checkout flows
-- [ ] Compensation logic added if stock is decremented
+## Bằng chứng (Screenshots/Videos)
 
-### AI Changes (if applicable)
-- [ ] System prompt is immutable (not modifiable by user input)
-- [ ] Guardrail middleware applied on AI endpoints
-- [ ] `shop_id` isolation enforced in all knowledge queries
-
----
-
-### Screenshots / Demo
-<!-- Add screenshots, recordings, or curl examples if UI or API changes -->
-
-### Notes for Reviewer
-<!-- Anything specific the reviewer should focus on? -->
+<!-- Nếu thay đổi UI, hãy dán ảnh chụp màn hình vào đây -->

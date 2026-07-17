@@ -15,30 +15,11 @@ updates:
       timezone: "Asia/Ho_Chi_Minh"
     # Limit open PRs to avoid noise
     open-pull-requests-limit: 10
-    # Group minor/patch updates together (fewer PRs)
+    # Group all NPM updates into a single PR (Toàn diện, không bị rác)
     groups:
-      langchain-ecosystem:
+      all-dependencies:
         patterns:
-          - "@langchain/*"
-          - "langchain"
-          - "langsmith"
-      typescript-tooling:
-        patterns:
-          - "typescript"
-          - "@typescript-eslint/*"
-          - "ts-node-dev"
-      testing:
-        patterns:
-          - "vitest"
-          - "@vitest/*"
-          - "@playwright/*"
-    # Labels for Dependabot PRs
-    labels:
-      - "dependencies"
-      - "automated"
-    # Auto-assign reviewer
-    reviewers:
-      - "your-github-username"  # TODO: Replace with actual username
+          - "*"
 
   # ── GitHub Actions dependencies ───────────────────────────────────────────
   - package-ecosystem: "github-actions"
