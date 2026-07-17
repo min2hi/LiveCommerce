@@ -13,7 +13,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/
-RUN npm ci --omit=dev --legacy-peer-deps
+RUN npm ci --omit=dev --legacy-peer-deps --ignore-scripts
 COPY --from=builder /app/backend/dist ./backend/dist
 
 EXPOSE 3000
