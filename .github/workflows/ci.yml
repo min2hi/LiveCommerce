@@ -54,8 +54,8 @@ jobs:
           npm run build
           # Start dev runner
           npm run dev:all &
-          # Wait for ports to be active
-          sleep 15
+          # Wait for ports to be active (timeout 90s)
+          npx wait-on -t 90000 tcp:3000 tcp:3001 tcp:3002 tcp:3003
 
       - name: Run Playwright E2E Tests
         run: npx playwright test --project=buyer-app-chromium
