@@ -37,6 +37,7 @@ playwright/.local-browsers/
 .idea/
 .vscode/
 .agents/
+skills-lock.json
 *.suo
 *.ntvs*
 *.njsproj
@@ -44,3 +45,6 @@ playwright/.local-browsers/
 *.sw?
 .DS_Store
 Thumbs.db
+
+# Load Testing Binaries
+k6-bin/
