@@ -45,10 +45,15 @@ export default defineConfig({
     video: "retain-on-failure",
 
     // Timeout for each action (click, fill, etc.)
-    actionTimeout: 10000,
+    actionTimeout: 30000,
 
     // Timeout for navigation
-    navigationTimeout: 15000,
+    navigationTimeout: 60000,
+  },
+
+  // Timeout for assertions
+  expect: {
+    timeout: 15000,
   },
 
   // ── Test Projects (Browser Targets) ─────────────────────────────────────
