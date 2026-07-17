@@ -29,7 +29,13 @@ describe('Security Loophole Regression Tests', () => {
 
     beforeEach(() => {
       mockProductStore = {
-        findById: vi.fn().mockResolvedValue({ id: 'prod-123', price: 100, shopId: 'shop-456' }),
+        findById: vi
+          .fn()
+          .mockResolvedValue({
+            id: '123e4567-e89b-12d3-a456-426614174001',
+            price: 100,
+            shopId: 'shop-456',
+          }),
       } as unknown as Mocked<IProductStore>;
 
       mockOrderStore = {
@@ -66,7 +72,7 @@ describe('Security Loophole Regression Tests', () => {
 
       req = {
         user: { id: 'user-123', username: 'buyer1', role: 'BUYER' },
-        body: { productId: 'prod-123', quantity: 5 }, // Requesting quantity of 5!
+        body: { productId: '123e4567-e89b-12d3-a456-426614174001', quantity: 5 }, // Requesting quantity of 5!
         headers: { 'x-idempotency-key': 'idem-789' },
       };
     });
@@ -78,7 +84,11 @@ describe('Security Loophole Regression Tests', () => {
       expect(resStatus).toHaveBeenCalledWith(202);
 
       // 2. Verified fix: StockStore.atomicCheckout is called WITH the quantity parameter (5)!
-      expect(mockStockStore.atomicCheckout).toHaveBeenCalledWith('prod-123', 'user-123', 5);
+      expect(mockStockStore.atomicCheckout).toHaveBeenCalledWith(
+        '123e4567-e89b-12d3-a456-426614174001',
+        'user-123',
+        5,
+      );
 
       // 3. RabbitMQ event contains quantity = 5
       expect(mockOrderQueue.publish).toHaveBeenCalledWith(

@@ -76,7 +76,7 @@ describe('CheckoutController', () => {
         role: 'BUYER',
       },
       body: {
-        productId: 'product-456',
+        productId: '123e4567-e89b-12d3-a456-426614174000',
         quantity: 1,
       },
       headers: {
@@ -140,7 +140,7 @@ describe('CheckoutController', () => {
   it('should return 409 if product is out of stock in Redis', async () => {
     mockIdempotencyStore.setIfAbsent.mockResolvedValue(true);
     mockProductStore.findById.mockResolvedValue({
-      id: 'product-456',
+      id: '123e4567-e89b-12d3-a456-426614174000',
       price: 10,
       shopId: 'shop-abc',
     } as any);
@@ -155,19 +155,23 @@ describe('CheckoutController', () => {
   it('should queue order and return 202 if checkout is successful', async () => {
     mockIdempotencyStore.setIfAbsent.mockResolvedValue(true);
     mockProductStore.findById.mockResolvedValue({
-      id: 'product-456',
+      id: '999e4567-e89b-12d3-a456-426614174999',
       price: 10,
       shopId: 'shop-abc',
     } as any);
     mockStockStore.atomicCheckout.mockResolvedValue('ok');
     mockOrderQueue.publish.mockResolvedValue(true);
 
-    await controller.checkout(req as AuthenticatedRequest, res as Response);
+    const customReq = {
+      ...req,
+      body: { ...req.body, productId: '999e4567-e89b-12d3-a456-426614174999' },
+    };
+    await controller.checkout(customReq as AuthenticatedRequest, res as Response);
 
     expect(mockOrderQueue.publish).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'user-123',
-        productId: 'product-456',
+        productId: '999e4567-e89b-12d3-a456-426614174999',
         quantity: 1,
         totalPrice: 10,
         idempotencyKey: 'user-123:idemp-key-789',
