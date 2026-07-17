@@ -3,6 +3,10 @@ const nextConfig = {
   // Bật React Strict Mode để phát hiện lỗi sớm hơn
   reactStrictMode: true,
   transpilePackages: ["@phosphor-icons/react"],
+  typescript: {
+    // We already run type-check in a dedicated CI step for the whole monorepo
+    ignoreBuildErrors: true,
+  },
 
   // Cho phép Next.js kết nối tới backend API server (chạy ở port 3000)
   async rewrites() {
