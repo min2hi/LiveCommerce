@@ -30,40 +30,42 @@ export function LiveStreamPlayer({ streamId }: LiveStreamPlayerProps) {
   const heartsRef = React.useRef<{ spawnHearts: () => void }>(null);
 
   // Use SWR for efficient fetching of live stream metadata
-  const { data: activeStreams } = useSWR<ActiveStream[]>(
+  const { data: activeStreams, isLoading } = useSWR<ActiveStream[]>(
     buildApiUrl("/livestreams/active"),
     fetcher,
     { revalidateOnFocus: false }
   );
 
-  let streamInfo = {
-    title: "Sony WH-1000XM5 Deals",
-    streamer: "TechGear Official",
-    viewers: "12.4K",
-    shopId: "a8762ee1-42d5-4c63-9a11-03e3e2875d92", // fallback demo shopId
-  };
-
-  if (activeStreams) {
-    const active = activeStreams.find((s) => s.id === streamId);
-    if (active) {
-      streamInfo = {
-        title: active.title || "Live Stream",
-        streamer: active.shop_name || active.username || "Streamer",
-        viewers: active.viewers ? `${(active.viewers / 1000).toFixed(1)}K` : "1.2K",
-        shopId: active.shopId || streamInfo.shopId,
-      };
-    } else {
-      const mock = [
-        { id: "cc9db567-1d5e-45a2-8544-c3a098f6718f", title: "Sony WH-1000XM5 Deals", streamer: "TechGear Official", viewers: "12.4K", shopId: "a8762ee1-42d5-4c63-9a11-03e3e2875d92" },
-        { id: "mock-stream-1", title: "Unboxing the new RTX 5090 Ti - Live Benchmarks", streamer: "PC Master Race", viewers: "12.5K", shopId: "mock-shop-1" },
-        { id: "mock-stream-2", title: "Sneaker Drop: Air Jordan 1 Travis Scott Edition", streamer: "HypeKicks", viewers: "8.2K", shopId: "mock-shop-2" },
-        { id: "mock-stream-3", title: "Skincare Routine 101 - 50% Flash Sale Now!", streamer: "Glow Beauty", viewers: "3.4K", shopId: "mock-shop-3" },
-        { id: "mock-stream-4", title: "Keychron Q1 Pro Custom Build + Giveaway", streamer: "KeyCrafters", viewers: "5.9K", shopId: "mock-shop-4" },
-      ].find((s) => s.id === streamId);
-
-      if (mock) streamInfo = mock;
-    }
+  if (isLoading) {
+    return (
+      <div className="w-full h-[100dvh] bg-zinc-950 flex flex-col items-center justify-center text-white">
+        <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-zinc-400 font-mono tracking-widest text-sm">LOADING STREAM...</p>
+      </div>
+    );
   }
+
+  const active = activeStreams?.find((s) => s.id === streamId);
+  
+  if (!active) {
+    return (
+      <div className="w-full h-[100dvh] bg-zinc-950 flex flex-col items-center justify-center text-white p-6">
+        <div className="text-zinc-600 mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216ZM168,152a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,152Zm0-32a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,120Zm-32,64a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h32A8,8,0,0,1,136,184Z"></path></svg>
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Stream Offline</h2>
+        <p className="text-zinc-400 text-center max-w-md">The broadcast you are looking for has ended or does not exist.</p>
+        <a href="/" className="mt-8 px-6 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-full hover:bg-zinc-200 transition-colors">Return Home</a>
+      </div>
+    );
+  }
+
+  const streamInfo = {
+    title: active.title || "Live Stream",
+    streamer: active.shop_name || active.username || "Streamer",
+    viewers: active.viewers ? `${(active.viewers / 1000).toFixed(1)}K` : "1.2K",
+    shopId: active.shopId || "default-shop",
+  };
 
   return (
     <div className={`w-full h-[100dvh] bg-zinc-950 overflow-hidden flex flex-col md:grid md:grid-rows-1 transition-all duration-500 ease-in-out ${isSidebarOpen ? "md:grid-cols-[1fr_340px]" : "md:grid-cols-1"}`}>
@@ -75,18 +77,16 @@ export function LiveStreamPlayer({ streamId }: LiveStreamPlayerProps) {
       >
         
         {/* Background Live Stream Feed */}
-        <img
-          src={`https://picsum.photos/seed/${streamId}/1920/1080`}
-          alt="Live stream feed"
-          className="absolute inset-0 w-full h-full object-cover opacity-85"
-          loading="lazy"
-        />
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-950 flex flex-col items-center justify-center opacity-85">
+           <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 256 256" className="text-zinc-600/50 mb-4"><path d="M228.23,104.4l-31-15.5A72.18,72.18,0,0,0,128,24a72.19,72.19,0,0,0-69.25,64.9L27.77,104.4A15.93,15.93,0,0,0,16,118.7v65.65a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V118.7A15.93,15.93,0,0,0,228.23,104.4ZM128,40a56,56,0,0,1,53.28,38.65,16,16,0,0,0-9-5.14,13.67,13.67,0,0,0-10.42,3A15.42,15.42,0,0,0,156,88.46V104H100V88.46a15.42,15.42,0,0,0-5.83-12,13.67,13.67,0,0,0-10.42-3,16,16,0,0,0-9,5.14A56,56,0,0,1,128,40ZM32,184.35V118.7l26.91-13.46A21,21,0,0,1,64,104a29.85,29.85,0,0,1,20,7.67v64.66H32Zm200-65.65v65.65H172V111.67a29.85,29.85,0,0,1,20-7.67,21,21,0,0,1,5.09,1.24Z"></path></svg>
+           <span className="text-zinc-600/50 font-mono tracking-widest text-sm uppercase">Live Feed Offline</span>
+        </div>
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-transparent to-zinc-950/30"></div>
 
         {/* Top Left: Streamer Info Panel */}
         <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10 flex items-center gap-2 md:gap-3 bg-zinc-950/40 backdrop-blur-lg border border-white/10 rounded-full pl-2 pr-4 md:pr-5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-          <div className="w-9 h-9 rounded-full overflow-hidden bg-zinc-800 border border-white/20">
-            <img src={`https://picsum.photos/seed/avatar-${streamId}/100/100`} alt="Streamer" className="w-full h-full object-cover" />
+          <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-tr from-zinc-800 to-zinc-900 border border-white/20 flex items-center justify-center">
+            <span className="text-white font-bold text-xs uppercase">{streamInfo.streamer.substring(0, 1)}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-semibold text-white leading-none">@{streamInfo.streamer}</span>

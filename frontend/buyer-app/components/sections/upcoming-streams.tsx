@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Calendar, Bell, Check, ArrowRight, Info } from "@phosphor-icons/react";
-import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
+import { Calendar, Bell, Check, ArrowRight, Info, CaretLeft, CaretRight } from "@phosphor-icons/react";
+import useSWR from "swr";
 import { buildApiUrl } from "@/lib/api";
+import { fetcher } from "@/lib/fetcher";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ScheduledStream {
   id: string;
@@ -18,47 +20,63 @@ interface ScheduledStream {
 }
 
 export function UpcomingStreams() {
-  const [streams, setStreams] = useState<ScheduledStream[]>([]);
-  const [loading, setLoading] = useState(true);
   const [remindedIds, setRemindedIds] = useState<Record<string, boolean>>({});
-  const [token, setToken] = useState<string | null>(null);
+  const { token } = useAuth();
   const [message, setMessage] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
+    }
+  };
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 340 + 16; // card width + gap
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const { data: streams = [], isLoading: loading } = useSWR<ScheduledStream[]>(
+    buildApiUrl("/scheduled-streams/upcoming"),
+    fetcher,
+    { fallbackData: [] }
+  );
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("buyer_token");
-    setToken(savedToken);
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, [streams]);
 
-    // Fetch upcoming streams
-    fetch(buildApiUrl("/scheduled-streams/upcoming"))
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch streams");
-        return res.json();
-      })
-      .then((data: ScheduledStream[]) => {
-        setStreams(data || []);
-        setLoading(false);
-
-        // If logged in, batch-check reminders
-        if (savedToken && data.length > 0) {
-          data.forEach((stream) => {
-            fetch(buildApiUrl(`/scheduled-streams/${stream.id}/remind/check`), {
-              headers: { Authorization: `Bearer ${savedToken}` },
-            })
-              .then((res) => res.json())
-              .then((status) => {
-                if (status.isReminderSet) {
-                  setRemindedIds((prev) => ({ ...prev, [stream.id]: true }));
-                }
-              })
-              .catch((err) => console.error("Error checking reminder:", err));
-          });
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load upcoming streams:", err);
-        setLoading(false);
+  // Batch-check reminders when streams are loaded and token exists
+  useEffect(() => {
+    if (token && streams.length > 0) {
+      streams.forEach((stream) => {
+        if (remindedIds[stream.id] !== undefined) return; // already checked or set
+        fetch(buildApiUrl(`/scheduled-streams/${stream.id}/remind/check`), {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((res) => res.json())
+          .then((status) => {
+            if (status.isReminderSet) {
+              setRemindedIds((prev) => ({ ...prev, [stream.id]: true }));
+            } else {
+              setRemindedIds((prev) => ({ ...prev, [stream.id]: false }));
+            }
+          })
+          .catch(() => {});
       });
-  }, []);
+    }
+  }, [token, streams]);
 
   const handleToggleReminder = async (streamId: string) => {
     if (!token) {
@@ -138,84 +156,108 @@ export function UpcomingStreams() {
             </h2>
           </div>
 
-          <div className="hidden md:flex items-center gap-2 text-xs text-[#666] font-bold uppercase tracking-widest">
-            Swipe
-            <ArrowRight size={16} weight="bold" />
+          <div className="hidden md:flex items-center gap-4">
+            <span className="text-xs text-[#666] font-bold uppercase tracking-widest mr-2">Swipe</span>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => scroll('left')}
+                disabled={!canScrollLeft}
+                className="w-10 h-10 border border-[#333] bg-[#0a0a0a] text-white flex items-center justify-center rounded-full hover:bg-white hover:text-black hover:border-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <CaretLeft size={16} weight="bold" />
+              </button>
+              <button 
+                onClick={() => scroll('right')}
+                disabled={!canScrollRight}
+                className="w-10 h-10 border border-[#333] bg-[#0a0a0a] text-white flex items-center justify-center rounded-full hover:bg-white hover:text-black hover:border-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <CaretRight size={16} weight="bold" />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Horizontal Slider Wrapper */}
-        <div className="relative">
-          <InfiniteMovingCards
-            speed="slow"
-            pauseOnHover={true}
-            items={streams.map((stream) => {
+        <div className="relative w-full">
+          <div 
+            ref={scrollContainerRef}
+            onScroll={checkScroll}
+            className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-4"
+          >
+            {streams.map((stream) => {
               const isReminded = remindedIds[stream.id];
-              return {
-                id: stream.id,
-                content: (
-                  <div
-                    className="w-[300px] md:w-[340px] flex-shrink-0 bg-[#0a0a0a] border border-[#222] hover:border-white transition-colors duration-300 group"
-                  >
-                    {/* Banner Image */}
-                    <div className="relative h-48 overflow-hidden bg-[#111]">
+              return (
+                <div
+                  key={stream.id}
+                  className="w-[300px] md:w-[340px] flex-shrink-0 snap-start bg-[#0a0a0a] border border-[#222] hover:border-white transition-colors duration-300 group/card"
+                >
+                  {/* Banner Image */}
+                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-center justify-center">
+                    {stream.bannerUrl ? (
                       <img
-                        src={stream.bannerUrl || "https://picsum.photos/seed/default/600/400"}
+                        src={stream.bannerUrl}
                         alt={stream.title}
-                        className="w-full h-full object-cover grayscale opacity-60 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500"
+                        className="absolute inset-0 w-full h-full object-cover grayscale opacity-60 group-hover/card:opacity-100 group-hover/card:grayscale-0 transition-all duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
-                      <div className="absolute top-4 left-4 bg-white text-black px-2 py-1 text-[10px] font-black uppercase tracking-widest">
-                        Scheduled
+                    ) : (
+                      <div className="flex flex-col items-center justify-center opacity-30 group-hover/card:opacity-60 transition-opacity z-10">
+                        <Calendar size={32} weight="fill" className="text-zinc-500 mb-2" />
+                        <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest">Upcoming</span>
                       </div>
-                    </div>
-
-                    {/* Card Body */}
-                    <div className="p-6 flex flex-col justify-between min-h-[200px]">
-                      <div className="space-y-4">
-                        <div className="text-[10px] font-mono font-bold text-white bg-[#111] border border-[#333] px-2 py-1 inline-block uppercase tracking-wider">
-                          {formatTime(stream.scheduledTime)}
-                        </div>
-                        <h3 className="text-lg font-black text-white line-clamp-1 uppercase tracking-tight">
-                          {stream.title}
-                        </h3>
-                        <p className="text-xs text-[#666] line-clamp-2 leading-relaxed font-medium">
-                          {stream.description || "Exclusive drops and deals inside."}
-                        </p>
-                      </div>
-
-                      {/* Footer Actions */}
-                      <div className="pt-6 flex items-center justify-between border-t border-[#222] mt-4">
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#888]">
-                          @{stream.shopName || "TechStore"}
-                        </span>
-
-                        <button
-                          onClick={() => handleToggleReminder(stream.id)}
-                          className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors ${isReminded
-                            ? "bg-white text-black"
-                            : "bg-transparent text-white border border-[#444] hover:border-white hover:bg-white hover:text-black"
-                            }`}
-                        >
-                          {isReminded ? (
-                            <>
-                              <Check size={14} weight="bold" />
-                              Added
-                            </>
-                          ) : (
-                            <>
-                              <Bell size={14} weight="bold" />
-                              Remind
-                            </>
-                          )}
-                        </button>
-                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+                    <div className="absolute top-4 left-4 bg-white text-black px-2 py-1 text-[10px] font-black uppercase tracking-widest">
+                      Scheduled
                     </div>
                   </div>
-                ),
-              };
+
+                  {/* Card Body */}
+                  <div className="p-6 flex flex-col justify-between min-h-[200px]">
+                    <div className="space-y-4">
+                      <div className="text-[10px] font-mono font-bold text-white bg-[#111] border border-[#333] px-2 py-1 inline-block uppercase tracking-wider">
+                        {formatTime(stream.scheduledTime)}
+                      </div>
+                      <h3 className="text-lg font-black text-white line-clamp-1 uppercase tracking-tight">
+                        {stream.title}
+                      </h3>
+                      {stream.description && (
+                        <p className="text-xs text-[#666] line-clamp-2 leading-relaxed font-medium">
+                          {stream.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="pt-6 flex items-center justify-between border-t border-[#222] mt-4">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#888]">
+                        {stream.shopName ? `@${stream.shopName}` : "LIVE COMMERCE"}
+                      </span>
+
+                      <button
+                        onClick={() => handleToggleReminder(stream.id)}
+                        className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors ${isReminded
+                          ? "bg-white text-black"
+                          : "bg-transparent text-white border border-[#444] hover:border-white hover:bg-white hover:text-black"
+                          }`}
+                      >
+                        {isReminded ? (
+                          <>
+                            <Check size={14} weight="bold" />
+                            Added
+                          </>
+                        ) : (
+                          <>
+                            <Bell size={14} weight="bold" />
+                            Remind
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
             })}
-          />
+          </div>
         </div>
 
         {/* Global Toast Alert Message */}

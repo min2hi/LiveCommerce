@@ -7,6 +7,9 @@ import { Users, Play } from "@phosphor-icons/react";
 
 import { buildApiUrl } from "@/lib/api";
 
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
+
 // Types
 interface Livestream {
   id: string;
@@ -17,65 +20,12 @@ interface Livestream {
   thumbnail?: string;
 }
 
-const MOCK_STREAMS: Livestream[] = [
-  {
-    id: "mock-stream-1",
-    title: "Unboxing the new RTX 5090 Ti - Live Benchmarks",
-    shopName: "PC Master Race",
-    viewers: 12504,
-    thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1470&auto=format&fit=crop",
-  },
-  {
-    id: "mock-stream-2",
-    title: "Sneaker Drop: Air Jordan 1 Travis Scott Edition",
-    shopName: "HypeKicks",
-    viewers: 8230,
-    thumbnail: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?q=80&w=1450&auto=format&fit=crop",
-  },
-  {
-    id: "mock-stream-3",
-    title: "Skincare Routine 101 - 50% Flash Sale Now!",
-    shopName: "Glow Beauty",
-    viewers: 3412,
-    thumbnail: "https://images.unsplash.com/photo-1596462502278-27bf85033e5a?q=80&w=1471&auto=format&fit=crop",
-  },
-  {
-    id: "mock-stream-4",
-    title: "Keychron Q1 Pro Custom Build + Giveaway",
-    shopName: "KeyCrafters",
-    viewers: 5900,
-    thumbnail: "https://images.unsplash.com/photo-1595225476474-87563907a212?q=80&w=1471&auto=format&fit=crop",
-  },
-];
-
 export function LiveDirectory() {
-  const [streams, setStreams] = useState<Livestream[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(buildApiUrl("/livestreams/active"))
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          // If the backend has streams but no thumbnails, assign random ones for demo
-          const enhancedData = data.map((stream: Livestream, index: number) => ({
-            ...stream,
-            thumbnail: stream.thumbnail || MOCK_STREAMS[index % MOCK_STREAMS.length].thumbnail,
-            shopName: stream.shopName || stream.username || "Live Shop",
-          }));
-          setStreams(enhancedData);
-        } else {
-          setStreams(MOCK_STREAMS);
-        }
-      })
-      .catch((err) => {
-        console.warn("Failed to fetch active streams, using mock data", err);
-        setStreams(MOCK_STREAMS);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  const { data: streams = [], isLoading: loading } = useSWR<Livestream[]>(
+    buildApiUrl("/livestreams/active"),
+    fetcher,
+    { revalidateOnFocus: false }
+  );
 
   return (
     <section className="w-full bg-[#050505] py-24 border-b border-[#222] relative z-20">
@@ -107,12 +57,19 @@ export function LiveDirectory() {
                   className="group flex flex-col gap-4 cursor-pointer"
                 >
                   {/* Thumbnail Container */}
-                  <div className="relative w-full aspect-video overflow-hidden bg-[#0a0a0a] border border-[#222] group-hover:border-white transition-colors rounded-xl shadow-lg">
-                    <img 
-                      src={stream.thumbnail} 
-                      alt={stream.title} 
-                      className="w-full h-full object-cover grayscale opacity-50 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500"
-                    />
+                  <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-950 border border-[#222] group-hover:border-white transition-colors rounded-xl shadow-lg flex items-center justify-center">
+                    {stream.thumbnail ? (
+                      <img 
+                        src={stream.thumbnail} 
+                        alt={stream.title} 
+                        className="absolute inset-0 w-full h-full object-cover grayscale opacity-50 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center opacity-30 group-hover:opacity-60 transition-opacity">
+                        <Play size={32} weight="fill" className="text-zinc-500 mb-2" />
+                        <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest">No Signal</span>
+                      </div>
+                    )}
                     {/* Live Badge */}
                     <div className="absolute top-3 left-3 bg-white text-black text-[10px] font-black px-2.5 py-1 uppercase tracking-widest border border-white rounded-md shadow-md">
                       LIVE
@@ -154,6 +111,13 @@ export function LiveDirectory() {
                 </motion.div>
               </Link>
             ))}
+          </div>
+        )}
+        {!loading && (!streams || streams.length === 0) && (
+          <div className="py-24 flex flex-col items-center justify-center text-center border border-dashed border-[#333] rounded-2xl bg-[#0a0a0a]">
+            <Play size={48} className="text-[#333] mb-4" weight="duotone" />
+            <h3 className="text-xl font-bold text-white mb-2">Không có kênh nào đang phát sóng</h3>
+            <p className="text-sm text-[#888] max-w-md">Hiện tại các Streamer đang nghỉ ngơi. Bạn hãy quay lại vào khung giờ vàng (20h tối) để săn sale nhé!</p>
           </div>
         )}
       </div>

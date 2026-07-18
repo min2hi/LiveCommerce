@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Fire } from "@phosphor-icons/react";
+import { Fire, ShoppingCart } from "@phosphor-icons/react";
 import useSWR from "swr";
 import { CheckoutButton } from "../checkout-button";
 import { PurchaseModal } from "../checkout/purchase-modal";
@@ -131,10 +131,7 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
     return () => clearInterval(timer);
   }, [product?.flashSaleEndTime]);
 
-  const maxStock = 100;
-  const currentStock = product ? product.stock : maxStock;
-  const soldPercent = Math.max(0, Math.min(100, ((maxStock - currentStock) / maxStock) * 100));
-  const remainingPercent = 100 - soldPercent;
+  const currentStock = product ? product.stock : 0;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -177,11 +174,17 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
         {/* Product Image Showcase */}
         <GlowingCard className="w-full h-32 rounded-xl border border-white/10 bg-zinc-900 mb-3 p-0 overflow-hidden relative">
 
-          <img
-            src={product?.imageUrl || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60"}
-            alt={product?.name || "Product"}
-            className="w-full h-full object-cover rounded-xl pointer-events-none"
-          />
+          {product?.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-full h-full object-cover rounded-xl pointer-events-none"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center opacity-80 pointer-events-none">
+              <ShoppingCart size={32} className="text-zinc-600" />
+            </div>
+          )}
           <MovingBorder
             duration={3}
             borderRadius="0.375rem"
@@ -195,14 +198,14 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
 
         {/* Product Info */}
         <div className="space-y-1 mt-3">
-          <h3 className="text-sm font-bold text-white tracking-tight">{product?.name || "Sony WH-1000XM5"}</h3>
-          <p className="text-[10px] text-zinc-400 leading-relaxed font-normal line-clamp-1">{product?.description || "Tai nghe chống ồn chủ động đỉnh cao công nghệ từ Sony"}</p>
+          <h3 className="text-sm font-bold text-white tracking-tight">{product?.name || "Đang tải sản phẩm..."}</h3>
+          <p className="text-[10px] text-zinc-400 leading-relaxed font-normal line-clamp-1">{product?.description || "Vui lòng chờ trong giây lát"}</p>
         </div>
 
         {/* Pricing */}
         <div className="flex items-baseline gap-2.5 mt-4">
-          <span className="text-3xl font-mono font-bold text-cyan-400">${product?.price || 299}</span>
-          <span className="text-sm font-mono text-zinc-500 line-through">${((product?.price || 299) * 1.5).toFixed(0)}</span>
+          <span className="text-3xl font-mono font-bold text-cyan-400">${product?.price || 0}</span>
+          <span className="text-sm font-mono text-zinc-500 line-through">${((product?.price || 0) * 1.5).toFixed(0)}</span>
         </div>
 
         {/* Stock Meter */}
@@ -211,12 +214,11 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
             <span className="flex items-center gap-1">
               Số lượng còn lại: <span className="text-white font-semibold">{currentStock === 0 ? "HẾT HÀNG" : `${currentStock} sản phẩm`}</span>
             </span>
-            <span>Đã bán: {soldPercent.toFixed(0)}%</span>
           </div>
           <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 transition-all duration-500"
-              style={{ width: `${remainingPercent}%` }}
+              style={{ width: currentStock > 0 ? '100%' : '0%' }}
             ></div>
           </div>
         </div>
