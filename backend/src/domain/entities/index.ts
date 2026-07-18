@@ -56,6 +56,9 @@ export interface OrderEntity {
   traceId?: string; // X-Trace-Id for distributed tracing
   createdAt: Date;
   updatedAt: Date;
+  productName?: string;
+  productImage?: string;
+  shopName?: string;
 }
 
 // ── KnowledgeDoc Entity (AI RAG) ──────────────────────────────────────────

@@ -52,7 +52,7 @@ export function StatsBar() {
           <span className="text-zinc-400 uppercase tracking-widest">Platform Status:</span>
           <span className="font-bold text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse">12 STREAMS ONLINE</span>
         </div>
-        
+
         <div className="h-px w-8 bg-white/10 sm:h-4 sm:w-px"></div>
 
         <div className="flex items-center gap-2">

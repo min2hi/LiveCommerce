@@ -125,26 +125,22 @@ export function UpcomingStreams() {
   if (streams.length === 0) return null;
 
   return (
-    <section className="py-16 border-t border-white/5 bg-zinc-950/20 relative">
+    <section className="py-20 border-t border-[#222] bg-[#050505] relative">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 pb-6 border-b border-[#222]">
           <div className="space-y-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-cyan-400">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#888]">
               Live Commerce Network
             </span>
-            <h2 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
-              <Calendar size={28} className="text-cyan-400" />
-              Lịch Phát Sóng Sắp Tới
+            <h2 className="text-3xl md:text-4xl font-black tracking-[-0.04em] text-white uppercase">
+              Upcoming Shows
             </h2>
-            <p className="text-sm text-zinc-400 max-w-lg">
-              Đăng ký nhận thông báo để không bỏ lỡ các buổi livestream độc quyền cùng mã giảm giá cực khủng.
-            </p>
           </div>
 
-          <div className="hidden md:flex items-center gap-1.5 text-xs text-zinc-500 font-medium">
-            Kéo ngang để xem thêm
-            <ArrowRight size={14} />
+          <div className="hidden md:flex items-center gap-2 text-xs text-[#666] font-bold uppercase tracking-widest">
+            Swipe
+            <ArrowRight size={16} weight="bold" />
           </div>
         </div>
 
@@ -159,58 +155,57 @@ export function UpcomingStreams() {
                 id: stream.id,
                 content: (
                   <div
-                    className="w-[290px] md:w-[320px] flex-shrink-0 bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-cyan-500/30 transition-all duration-300 group shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
+                    className="w-[300px] md:w-[340px] flex-shrink-0 bg-[#0a0a0a] border border-[#222] hover:border-white transition-colors duration-300 group"
                   >
                     {/* Banner Image */}
-                    <div className="relative h-44 overflow-hidden bg-zinc-950">
+                    <div className="relative h-48 overflow-hidden bg-[#111]">
                       <img
                         src={stream.bannerUrl || "https://picsum.photos/seed/default/600/400"}
                         alt={stream.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+                        className="w-full h-full object-cover grayscale opacity-60 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
-                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-[9px] font-semibold text-cyan-400 tracking-wider uppercase font-mono">
-                        Sắp Diễn Ra
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+                      <div className="absolute top-4 left-4 bg-white text-black px-2 py-1 text-[10px] font-black uppercase tracking-widest">
+                        Scheduled
                       </div>
                     </div>
 
                     {/* Card Body */}
-                    <div className="p-5 flex flex-col justify-between min-h-[190px]">
-                      <div className="space-y-3">
-                        <div className="text-[11px] font-mono font-bold text-cyan-400 bg-cyan-950/40 border border-cyan-800/30 rounded px-2.5 py-0.5 inline-block">
+                    <div className="p-6 flex flex-col justify-between min-h-[200px]">
+                      <div className="space-y-4">
+                        <div className="text-[10px] font-mono font-bold text-white bg-[#111] border border-[#333] px-2 py-1 inline-block uppercase tracking-wider">
                           {formatTime(stream.scheduledTime)}
                         </div>
-                        <h3 className="text-base font-bold text-white line-clamp-1 group-hover:text-cyan-300 transition-colors">
+                        <h3 className="text-lg font-black text-white line-clamp-1 uppercase tracking-tight">
                           {stream.title}
                         </h3>
-                        <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
-                          {stream.description || "Tham gia ngay để nhận hàng loạt ưu đãi hấp dẫn từ Streamer."}
+                        <p className="text-xs text-[#666] line-clamp-2 leading-relaxed font-medium">
+                          {stream.description || "Exclusive drops and deals inside."}
                         </p>
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="pt-4 flex items-center justify-between border-t border-white/5">
-                        <span className="text-[10px] font-mono text-zinc-500">
+                      <div className="pt-6 flex items-center justify-between border-t border-[#222] mt-4">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#888]">
                           @{stream.shopName || "TechStore"}
                         </span>
 
                         <button
                           onClick={() => handleToggleReminder(stream.id)}
-                          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                            isReminded
-                              ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                              : "bg-zinc-800 hover:bg-zinc-700 text-zinc-100 hover:text-white border border-white/5"
-                          }`}
+                          className={`flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors ${isReminded
+                            ? "bg-white text-black"
+                            : "bg-transparent text-white border border-[#444] hover:border-white hover:bg-white hover:text-black"
+                            }`}
                         >
                           {isReminded ? (
                             <>
-                              <Check size={13} weight="bold" />
-                              Đã Nhắc
+                              <Check size={14} weight="bold" />
+                              Added
                             </>
                           ) : (
                             <>
-                              <Bell size={13} />
-                              Nhắc Tôi
+                              <Bell size={14} weight="bold" />
+                              Remind
                             </>
                           )}
                         </button>
@@ -230,10 +225,10 @@ export function UpcomingStreams() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-cyan-950 border border-cyan-800 text-cyan-200 text-xs font-semibold px-4 py-3 rounded-full shadow-2xl backdrop-blur-xl"
+              className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-white text-black px-4 py-3 shadow-2xl border border-black"
             >
-              <Info size={16} weight="fill" />
-              {message}
+              <Info size={16} weight="bold" />
+              <span className="text-xs font-black uppercase tracking-widest">{message}</span>
             </motion.div>
           )}
         </AnimatePresence>

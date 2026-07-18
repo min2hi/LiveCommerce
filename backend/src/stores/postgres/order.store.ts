@@ -4,7 +4,10 @@ import type { OrderEntity } from '../../domain/entities';
 import type { OrderPendingEvent } from '../../domain/entities';
 
 export class OrderStore implements IOrderStore {
-  constructor(private readonly writeDb: Pool, private readonly readDb: Pool = writeDb) {}
+  constructor(
+    private readonly writeDb: Pool,
+    private readonly readDb: Pool = writeDb,
+  ) {}
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapRowToEntity(row: any): OrderEntity {
@@ -20,6 +23,9 @@ export class OrderStore implements IOrderStore {
       traceId: row.trace_id || undefined,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
+      productName: row.product_name,
+      productImage: row.product_image,
+      shopName: row.shop_name,
     };
   }
 
@@ -64,12 +70,15 @@ export class OrderStore implements IOrderStore {
 
   async findByUserId(userId: string): Promise<OrderEntity[]> {
     const query = `
-      SELECT id, user_id, product_id, shop_id, quantity, total_price, status, idempotency_key, trace_id, created_at, updated_at
-      FROM orders
-      WHERE user_id = $1
-      ORDER BY created_at DESC
+      SELECT o.id, o.user_id, o.product_id, o.shop_id, o.quantity, o.total_price, o.status, o.idempotency_key, o.trace_id, o.created_at, o.updated_at,
+             p.name AS product_name, p.image_url AS product_image, s.name AS shop_name
+      FROM orders o
+      JOIN products p ON o.product_id = p.id
+      JOIN shops s ON o.shop_id = s.id
+      WHERE o.user_id = $1
+      ORDER BY o.created_at DESC
     `;
     const { rows } = await this.readDb.query(query, [userId]);
-    return rows.map(row => this.mapRowToEntity(row));
+    return rows.map((row) => this.mapRowToEntity(row));
   }
 }

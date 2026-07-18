@@ -11,6 +11,7 @@ import { getWriteDbPool, getReadDbPool, closeDbPool } from '../../src/infrastruc
 import { getRedisClient, closeRedisClient } from '../../src/infrastructure/cache';
 import { getRabbitMQChannel, closeRabbitMQConnection } from '../../src/infrastructure/queue';
 import { UserStore } from '../../src/stores/postgres/user.store';
+import { AddressStore } from '../../src/stores/postgres/address.store';
 import { ProductStore } from '../../src/stores/postgres/product.store';
 import { OrderStore } from '../../src/stores/postgres/order.store';
 import { StockStore } from '../../src/stores/redis/stock.store';
@@ -19,9 +20,11 @@ import { OrderQueue } from '../../src/stores/rabbitmq/order.queue';
 import { KafkaOrderQueue } from '../../src/stores/kafka/order.queue';
 import type { IOrderQueue } from '../../src/domain/interfaces';
 import { AuthController } from '../../src/http/controllers/auth.controller';
+import { UserController } from '../../src/http/controllers/user.controller';
 import { CheckoutController } from '../../src/http/controllers/checkout.controller';
 import { SseController } from '../../src/http/controllers/sse.controller';
 import { getAuthRouter } from '../../src/http/routes/auth.routes';
+import { getUserRouter } from '../../src/http/routes/user.routes';
 import { getCheckoutRouter } from '../../src/http/routes/checkout.routes';
 import { getSseRouter } from '../../src/http/routes/sse.routes';
 import { getAiRouter } from '../../src/http/routes/ai.routes';
@@ -149,7 +152,7 @@ let orderQueue: IOrderQueue;
 
 async function bootstrap(): Promise<void> {
   logger.info('Initializing API Server dependencies...');
-  
+
   SystemMonitor.start(5000); // 5 second sampling rate
 
   // Connect to Infra singleton instances
@@ -176,7 +179,7 @@ async function bootstrap(): Promise<void> {
   }
 
   const redisClient = await getRedisClient();
-  
+
   if (process.env.USE_KAFKA === 'true') {
     const kafkaQueue = new KafkaOrderQueue();
     await kafkaQueue.connect();
@@ -188,6 +191,7 @@ async function bootstrap(): Promise<void> {
 
   // Instantiate Stores
   const userStore = new UserStore(writeDbPool, readDbPool);
+  const addressStore = new AddressStore(writeDbPool, readDbPool);
   const productStore = new ProductStore(writeDbPool, readDbPool);
   const orderStore = new OrderStore(writeDbPool, readDbPool);
   const stockStore = new StockStore(redisClient);
@@ -198,6 +202,7 @@ async function bootstrap(): Promise<void> {
 
   // Instantiate Controllers
   const authController = new AuthController(userStore, writeDbPool);
+  const userController = new UserController(addressStore, userStore);
   const checkoutController = new CheckoutController(
     productStore,
     orderStore,
@@ -216,6 +221,7 @@ async function bootstrap(): Promise<void> {
 
   // Register Routes
   app.use('/api/auth', getAuthRouter(authController));
+  app.use('/api/users', getUserRouter(userController));
   app.use('/api/orders', getOrderRouter(orderController));
   app.use('/api/checkout', getCheckoutRouter(checkoutController));
   app.use('/api/sse', getSseRouter(sseController));
@@ -273,7 +279,7 @@ async function bootstrap(): Promise<void> {
 // Graceful Shutdown
 async function gracefulShutdown(signal: string): Promise<void> {
   logger.info(`[API] ${signal} received. Shutting down gracefully...`);
-  
+
   SystemMonitor.stop();
 
   // Broadcast shutdown message to all connected SSE clients (Streamers)

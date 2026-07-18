@@ -65,7 +65,7 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
         // Trigger FOMO Toast
         const toastId = `fomo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         setFomoToasts((prev) => [...prev, { id: toastId, timestamp: Date.now() }]);
-        
+
         // Auto remove toast after 3.5 seconds
         setTimeout(() => {
           setFomoToasts((prev) => prev.filter((t) => t.id !== toastId));
@@ -103,7 +103,7 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
 
   // Fallback to demo product if not found
   const product = products?.find((p) => p.isFlashSale || p.id === "d3b4a9cf-5a5d-47b0-b332-e6a7ea5af782");
-  
+
   useEffect(() => {
     if (!product?.flashSaleEndTime) {
       setTimeLeft("00:00");
@@ -111,7 +111,7 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
     }
 
     const targetTime = new Date(product.flashSaleEndTime).getTime();
-    
+
     const updateTime = () => {
       const now = new Date().getTime();
       const difference = targetTime - now;
@@ -130,17 +130,18 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
     const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, [product?.flashSaleEndTime]);
-  
+
   const maxStock = 100;
   const currentStock = product ? product.stock : maxStock;
   const soldPercent = Math.max(0, Math.min(100, ((maxStock - currentStock) / maxStock) * 100));
   const remainingPercent = 100 - soldPercent;
 
   return (
-    <div className="w-full h-full flex flex-col justify-between">
-      <div>
+    <div className="w-full h-full flex flex-col">
+      <div className="flex-1 overflow-y-auto scrollbar-none p-4 pb-0 flex flex-col gap-4">
+        <div>
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-3">
           <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-cyan-400 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
             Sản phẩm đang live
@@ -174,12 +175,12 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
         </div>
 
         {/* Product Image Showcase */}
-        <GlowingCard className="w-full h-48 rounded-2xl border border-white/10 bg-zinc-900 mb-4 p-0 overflow-hidden relative">
+        <GlowingCard className="w-full h-32 rounded-xl border border-white/10 bg-zinc-900 mb-3 p-0 overflow-hidden relative">
 
           <img
             src={product?.imageUrl || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60"}
             alt={product?.name || "Product"}
-            className="w-full h-full object-cover rounded-2xl pointer-events-none"
+            className="w-full h-full object-cover rounded-xl pointer-events-none"
           />
           <MovingBorder
             duration={3}
@@ -193,9 +194,9 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
         </GlowingCard>
 
         {/* Product Info */}
-        <div className="space-y-2">
-          <h3 className="text-lg font-bold text-white tracking-tight">{product?.name || "Sony WH-1000XM5"}</h3>
-          <p className="text-xs text-zinc-400 leading-relaxed font-normal">{product?.description || "Tai nghe chống ồn chủ động đỉnh cao công nghệ từ Sony"}</p>
+        <div className="space-y-1 mt-3">
+          <h3 className="text-sm font-bold text-white tracking-tight">{product?.name || "Sony WH-1000XM5"}</h3>
+          <p className="text-[10px] text-zinc-400 leading-relaxed font-normal line-clamp-1">{product?.description || "Tai nghe chống ồn chủ động đỉnh cao công nghệ từ Sony"}</p>
         </div>
 
         {/* Pricing */}
@@ -220,23 +221,24 @@ export function ProductShowcase({ shopId }: ProductShowcaseProps) {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Action Button & Timer */}
-      <div className="border-t border-white/5 pt-4 space-y-4">
+      <div className="flex-shrink-0 border-t border-white/5 p-4 mt-4 bg-[#050505] space-y-4">
         <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500">
           <span>Thời gian ưu đãi còn:</span>
           <span className="text-white font-bold animate-pulse">{timeLeft}</span>
         </div>
-        <CheckoutButton 
-          onClick={() => setIsPurchaseModalOpen(true)} 
-          disabled={currentStock === 0} 
+        <CheckoutButton
+          onClick={() => setIsPurchaseModalOpen(true)}
+          disabled={currentStock === 0}
         />
       </div>
 
-      <PurchaseModal 
-        isOpen={isPurchaseModalOpen} 
-        onClose={() => setIsPurchaseModalOpen(false)} 
-        product={product || null} 
+      <PurchaseModal
+        isOpen={isPurchaseModalOpen}
+        onClose={() => setIsPurchaseModalOpen(false)}
+        product={product || null}
       />
     </div>
   );

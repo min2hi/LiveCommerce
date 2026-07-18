@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { PaperPlaneRight, Sparkle, X, Robot } from "@phosphor-icons/react";
-import { SparklesCore } from "../ui/sparkles";
 import { buildApiUrl } from "@/lib/api";
 
 interface AiChatPanelProps {
@@ -119,10 +118,10 @@ export function AiChatPanel({ shopId, productId = "d3b4a9cf-5a5d-47b0-b332-e6a7e
       {/* Floating AI Chat Assistant Trigger Bubble */}
       <button
         onClick={() => setShowAiChat(!showAiChat)}
-        className="absolute right-4 bottom-[42%] md:right-[412px] md:bottom-6 w-12 h-12 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-zinc-950 flex items-center justify-center transition-all cursor-pointer shadow-lg z-30 hover:scale-105 active:scale-95 border border-white/10"
+        className="absolute right-4 bottom-[42%] md:right-6 md:bottom-6 w-11 h-11 rounded-full bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 flex items-center justify-center transition-all cursor-pointer shadow-[0_0_20px_rgba(0,0,0,0.5)] z-30 border border-white/10 backdrop-blur-md"
         aria-label="Toggle AI Assistant"
       >
-        {showAiChat ? <X size={20} weight="bold" /> : <Robot size={22} weight="fill" />}
+        {showAiChat ? <X size={18} weight="bold" /> : <Sparkle size={18} weight="fill" />}
       </button>
 
       {/* Collapsible Floating AI Chat Assistant Panel */}
@@ -133,60 +132,50 @@ export function AiChatPanel({ shopId, productId = "d3b4a9cf-5a5d-47b0-b332-e6a7e
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: shouldReduceMotion ? 0 : 15, scale: shouldReduceMotion ? 1 : 0.95 }}
             transition={{ duration: 0.2, type: "spring", stiffness: 260, damping: 25 }}
-            className="absolute inset-0 md:inset-auto md:right-[412px] md:bottom-20 w-full h-full md:w-[340px] md:h-[400px] bg-zinc-900/95 md:bg-zinc-900/90 backdrop-blur-xl md:border border-white/10 shadow-2xl md:rounded-2xl flex flex-col overflow-hidden z-40"
+            className="absolute inset-0 md:inset-auto md:right-6 md:bottom-20 w-full h-full md:w-[360px] md:h-[480px] bg-[#0a0a0a]/95 backdrop-blur-xl border-l md:border border-white/10 md:rounded-xl flex flex-col overflow-hidden z-40 shadow-2xl"
           >
             {/* AI Panel Header */}
-            <div className="relative px-4 py-3 bg-zinc-950/60 border-b border-cyan-500/20 flex items-center justify-between overflow-hidden">
-              <div className="absolute inset-0 z-0">
-                <SparklesCore
-                  background="transparent"
-                  minSize={0.4}
-                  maxSize={1}
-                  particleDensity={150}
-                  className="w-full h-full"
-                  particleColor="#06b6d4"
-                />
-              </div>
-              <div className="relative z-10 flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider">
-                <Sparkle size={14} weight="fill" className="animate-pulse text-cyan-400" />
-                Trợ lý mua sắm AI
+            <div className="px-4 py-3 bg-[#050505] border-b border-white/[0.05] flex items-center justify-between">
+              <div className="flex items-center gap-2 text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-widest">
+                <Sparkle size={14} weight="fill" className="text-zinc-500" />
+                SYSTEM / AI_ASSISTANT
               </div>
               <button
                 onClick={() => setShowAiChat(false)}
-                className="text-zinc-400 hover:text-white cursor-pointer"
+                className="text-zinc-600 hover:text-white cursor-pointer transition-colors"
                 aria-label="Close panel"
               >
-                <X size={14} />
+                <X size={14} weight="bold" />
               </button>
             </div>
 
             {/* AI Message Stream */}
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-none bg-zinc-950/20">
-              <div className="flex flex-col gap-3.5">
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-none bg-transparent">
+              <div className="flex flex-col gap-4">
                 {aiMessages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex gap-2.5 items-start ${msg.isAi ? "" : "justify-end"}`}
+                    className={`flex gap-3 items-start ${msg.isAi ? "" : "justify-end"}`}
                   >
                     {msg.isAi && (
-                      <div className="w-[18px] h-[18px] rounded-full bg-zinc-800 flex items-center justify-center shrink-0 mt-0.5 border border-white/10">
-                        <Sparkle size={10} weight="fill" className="text-cyan-400" />
+                      <div className="w-5 h-5 rounded-[4px] bg-white/5 flex items-center justify-center shrink-0 mt-0.5 border border-white/10">
+                        <Sparkle size={10} weight="fill" className="text-zinc-400" />
                       </div>
                     )}
 
-                    <div className={`flex flex-col ${msg.isAi ? "" : "items-end"}`}>
-                      <span className="text-[9px] font-mono text-zinc-500">
-                        {msg.isAi ? "AI Assistant" : "You"}
+                    <div className={`flex flex-col ${msg.isAi ? "items-start" : "items-end"}`}>
+                      <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-wider mb-1">
+                        {msg.isAi ? "Assistant" : "You"}
                       </span>
-                      <div className={`text-xs leading-snug mt-1 max-w-[240px] px-3.5 py-2.5 rounded-2xl ${msg.isAi
-                          ? "bg-zinc-800/80 border border-white/5 text-zinc-200"
-                          : "bg-cyan-500/10 border border-cyan-500/20 text-cyan-200"
+                      <div className={`text-[14px] leading-relaxed max-w-[260px] px-4 py-3 rounded-xl ${msg.isAi
+                        ? "bg-white/5 text-zinc-300 border border-white/[0.05] rounded-tl-none"
+                        : "bg-zinc-800/80 text-white border border-white/10 rounded-tr-none"
                         }`}>
                         {msg.text || (
                           <span className="flex items-center gap-1 py-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" style={{ animationDelay: "0ms" }}></span>
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" style={{ animationDelay: "150ms" }}></span>
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" style={{ animationDelay: "300ms" }}></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-pulse"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-pulse" style={{ animationDelay: "150ms" }}></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-pulse" style={{ animationDelay: "300ms" }}></span>
                           </span>
                         )}
                       </div>
@@ -198,25 +187,24 @@ export function AiChatPanel({ shopId, productId = "d3b4a9cf-5a5d-47b0-b332-e6a7e
             </div>
 
             {/* AI Input Box */}
-            <div className="p-3 border-t border-white/5 bg-zinc-950/20">
+            <div className="p-3 border-t border-white/[0.05] bg-[#050505]">
               <form onSubmit={handleSendAiMessage} className="flex gap-2 relative">
-                <label htmlFor="ai-chat-input" className="sr-only">Ask the assistant</label>
                 <input
                   id="ai-chat-input"
                   type="text"
                   value={aiChatMessage}
                   onChange={(e) => setAiChatMessage(e.target.value)}
                   disabled={isAiLoading}
-                  className="w-full bg-black/40 border border-white/10 rounded-full pl-4 pr-10 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 placeholder-zinc-500 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed font-sans"
-                  placeholder={isAiLoading ? "Đang xử lý..." : "Hỏi về thông số, kho hàng..."}
+                  className="w-full bg-transparent border border-white/10 hover:border-white/20 focus:border-white/30 rounded-md pl-3 pr-10 py-3 text-[13px] text-white focus:outline-none transition-all font-mono placeholder-zinc-600 disabled:opacity-50"
+                  placeholder={isAiLoading ? "Processing..." : "Ask something..."}
                 />
                 <button
                   type="submit"
-                  className="absolute right-1.5 top-1.5 bottom-1.5 aspect-square bg-cyan-500 hover:bg-cyan-400 text-zinc-950 rounded-full flex items-center justify-center transition-colors active:scale-95 disabled:opacity-30 disabled:hover:bg-cyan-500 cursor-pointer"
-                  disabled={!aiChatMessage.trim() || isAiLoading}
                   aria-label="Send query"
+                  className="absolute right-1.5 top-1.5 bottom-1.5 aspect-square bg-white hover:bg-zinc-200 text-black rounded-sm flex items-center justify-center transition-colors active:scale-95 disabled:opacity-20 cursor-pointer"
+                  disabled={!aiChatMessage.trim() || isAiLoading}
                 >
-                  <PaperPlaneRight size={12} weight="fill" />
+                  <PaperPlaneRight size={14} weight="fill" />
                 </button>
               </form>
             </div>
