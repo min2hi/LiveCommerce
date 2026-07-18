@@ -60,7 +60,7 @@ test.describe("Flash Sale Checkout Flow", () => {
   });
 
   test("buyer can checkout during flash sale", async ({ page }) => {
-    const checkoutButton = page.locator('button:has-text("MUA NGAY")');
+    const checkoutButton = page.locator('button:has-text("MUA NGAY"):visible');
     await expect(checkoutButton).toBeVisible();
     await checkoutButton.click();
 
@@ -88,7 +88,7 @@ test.describe("Flash Sale Checkout Flow", () => {
     ).toBeVisible({ timeout: 5000 });
 
     // Send a query for specs
-    const input = page.locator("#ai-chat-input");
+    const input = page.getByPlaceholder("Ask something...");
     await input.fill("specs");
     await page.locator('button[aria-label="Send query"]').click();
 
@@ -99,14 +99,14 @@ test.describe("Flash Sale Checkout Flow", () => {
 
     // Wait for assistant response to stream and display mock response
     await expect(
-      page.locator("span:has-text('AI Assistant') + div:has-text('Mock AI')"),
+      page.locator("span:has-text('Assistant') + div:has-text('Mock AI')"),
     ).toBeVisible({ timeout: 15000 });
   });
 
   test("double-click does not create duplicate order due to UI disabling and idempotency", async ({
     page,
   }) => {
-    const checkoutButton = page.locator('button:has-text("MUA NGAY")');
+    const checkoutButton = page.locator('button:has-text("MUA NGAY"):visible');
     await expect(checkoutButton).toBeVisible();
     await checkoutButton.click();
 

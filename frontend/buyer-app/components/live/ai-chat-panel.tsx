@@ -190,6 +190,7 @@ export function AiChatPanel({ shopId, productId = "d3b4a9cf-5a5d-47b0-b332-e6a7e
             <div className="p-3 border-t border-white/[0.05] bg-[#050505]">
               <form onSubmit={handleSendAiMessage} className="flex gap-2 relative">
                 <input
+                  id="ai-chat-input"
                   type="text"
                   value={aiChatMessage}
                   onChange={(e) => setAiChatMessage(e.target.value)}
@@ -199,6 +200,7 @@ export function AiChatPanel({ shopId, productId = "d3b4a9cf-5a5d-47b0-b332-e6a7e
                 />
                 <button
                   type="submit"
+                  aria-label="Send query"
                   className="absolute right-1.5 top-1.5 bottom-1.5 aspect-square bg-white hover:bg-zinc-200 text-black rounded-sm flex items-center justify-center transition-colors active:scale-95 disabled:opacity-20 cursor-pointer"
                   disabled={!aiChatMessage.trim() || isAiLoading}
                 >
