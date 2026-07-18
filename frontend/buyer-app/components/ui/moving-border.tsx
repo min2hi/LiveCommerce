@@ -97,11 +97,25 @@ export const MovingBorderSvg = ({
 
   const x = useTransform(
     progress,
-    (val) => pathRef.current?.getPointAtLength(val)?.x ?? 0
+    (val) => {
+      if (!pathRef.current) return 0;
+      try {
+        return pathRef.current.getPointAtLength(val)?.x ?? 0;
+      } catch (e) {
+        return 0;
+      }
+    }
   );
   const y = useTransform(
     progress,
-    (val) => pathRef.current?.getPointAtLength(val)?.y ?? 0
+    (val) => {
+      if (!pathRef.current) return 0;
+      try {
+        return pathRef.current.getPointAtLength(val)?.y ?? 0;
+      } catch (e) {
+        return 0;
+      }
+    }
   );
 
   const transform = useMotionTemplate`translateX(${x}px) translateY(${y}px) translateX(-50%) translateY(-50%)`;

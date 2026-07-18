@@ -147,101 +147,100 @@ export function AuctionWidget({ shopId }: { shopId: string }) {
           initial={{ opacity: 0, x: -50, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -50, scale: 0.95 }}
-          className="absolute top-20 left-4 md:top-24 md:left-6 z-40"
+          className="relative w-full z-40 mb-4"
         >
           <MovingBorder
             duration={4}
             borderRadius="1rem"
-            containerClassName="w-72"
+            containerClassName="w-full"
             borderClassName="bg-[radial-gradient(#f59e0b_40%,transparent_60%)]"
             className="w-full h-full bg-zinc-950/75 backdrop-blur-3xl border border-white/5 p-4 shadow-[0_8px_32px_rgba(245,158,11,0.15)] text-left"
           >
             <div className="relative z-10 flex flex-col gap-3 w-full">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Gavel size={18} className="text-amber-400" weight="fill" />
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono">
-                  Live Auction
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Gavel size={18} className="text-amber-400" weight="fill" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400 font-mono">
+                    Live Auction
+                  </span>
+                </div>
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
                 </span>
               </div>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-              </span>
-            </div>
 
-            {/* Product Info */}
-            <h3 className="text-sm font-bold text-white line-clamp-1">{auction.title}</h3>
+              {/* Product Info */}
+              <h3 className="text-sm font-bold text-white line-clamp-1">{auction.title}</h3>
 
-            {/* Price Box */}
-            <div className="bg-black/50 border border-white/5 rounded-xl p-3 flex flex-col items-center justify-center relative overflow-hidden">
-              <span className="text-[10px] text-zinc-400 font-mono mb-1">CURRENT BID</span>
-              <motion.div
-                key={auction.currentPrice}
-                initial={{ scale: 1.5, color: "#f59e0b" }}
-                animate={{ scale: 1, color: "#ffffff" }}
-                className="text-3xl font-black tracking-tight"
-              >
-                ${Number(auction.currentPrice).toLocaleString()}
-              </motion.div>
-            </div>
-
-            {/* Leaderboard / Bids */}
-            <div className="space-y-1.5 min-h-[60px] max-h-[100px] overflow-y-auto scrollbar-none">
-              <AnimatePresence>
-                {recentBids.map((bid, i) => (
-                  <motion.div
-                    key={`${bid.userId}-${bid.bidAmount}-${i}`}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className={`flex items-center justify-between text-xs p-1.5 rounded ${
-                      i === 0
-                        ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/20"
-                        : "text-zinc-400"
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      {i === 0 ? <Trophy size={14} weight="fill" /> : <User size={14} />}
-                      <span className="truncate max-w-[100px]">{bid.username}</span>
-                    </div>
-                    <span>${Number(bid.bidAmount).toLocaleString()}</span>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-              {recentBids.length === 0 && (
-                <div className="text-xs text-zinc-500 text-center italic py-2">
-                  Chưa có ai đặt giá. Hãy là người đầu tiên!
-                </div>
-              )}
-            </div>
-
-            {/* Action */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleBid}
-              disabled={isBidding}
-              className="w-full py-3 bg-gradient-to-r from-amber-500 to-red-500 hover:from-amber-400 hover:to-red-400 text-white font-black text-sm uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(245,158,11,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              BID +${Number(auction.minIncrement).toLocaleString()}
-              <ArrowUpRight size={16} weight="bold" />
-            </motion.button>
-
-            {/* Error Message */}
-            <AnimatePresence>
-              {error && (
+              {/* Price Box */}
+              <div className="bg-black/50 border border-white/5 rounded-xl p-3 flex flex-col items-center justify-center relative overflow-hidden">
+                <span className="text-[10px] text-zinc-400 font-mono mb-1">CURRENT BID</span>
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center gap-1.5 text-[10px] text-red-400 font-semibold mt-1"
+                  key={auction.currentPrice}
+                  initial={{ scale: 1.5, color: "#f59e0b" }}
+                  animate={{ scale: 1, color: "#ffffff" }}
+                  className="text-3xl font-black tracking-tight"
                 >
-                  <WarningCircle size={14} weight="fill" />
-                  {error}
+                  ${Number(auction.currentPrice).toLocaleString()}
                 </motion.div>
-              )}
-            </AnimatePresence>
+              </div>
+
+              {/* Leaderboard / Bids */}
+              <div className="space-y-1.5 min-h-[60px] max-h-[100px] overflow-y-auto scrollbar-none">
+                <AnimatePresence>
+                  {recentBids.map((bid, i) => (
+                    <motion.div
+                      key={`${bid.userId}-${bid.bidAmount}-${i}`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`flex items-center justify-between text-xs p-1.5 rounded ${i === 0
+                          ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/20"
+                          : "text-zinc-400"
+                        }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        {i === 0 ? <Trophy size={14} weight="fill" /> : <User size={14} />}
+                        <span className="truncate max-w-[100px]">{bid.username}</span>
+                      </div>
+                      <span>${Number(bid.bidAmount).toLocaleString()}</span>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                {recentBids.length === 0 && (
+                  <div className="text-xs text-zinc-500 text-center italic py-2">
+                    Chưa có ai đặt giá. Hãy là người đầu tiên!
+                  </div>
+                )}
+              </div>
+
+              {/* Action */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleBid}
+                disabled={isBidding}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-red-500 hover:from-amber-400 hover:to-red-400 text-white font-black text-sm uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(245,158,11,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                BID +${Number(auction.minIncrement).toLocaleString()}
+                <ArrowUpRight size={16} weight="bold" />
+              </motion.button>
+
+              {/* Error Message */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-1.5 text-[10px] text-red-400 font-semibold mt-1"
+                  >
+                    <WarningCircle size={14} weight="fill" />
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </MovingBorder>
         </motion.div>

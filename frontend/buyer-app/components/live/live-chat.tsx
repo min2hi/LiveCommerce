@@ -39,11 +39,20 @@ export function LiveChat({ roomId }: LiveChatProps) {
   ]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasNewMessages, setHasNewMessages] = useState(false);
+  const prevMessagesLengthRef = useRef(messages.length);
 
   // Auto scroll chat
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!isHovered) {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      setHasNewMessages(false);
+    } else if (messages.length > prevMessagesLengthRef.current) {
+      setHasNewMessages(true);
+    }
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages, isHovered]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +62,15 @@ export function LiveChat({ roomId }: LiveChatProps) {
   };
 
   return (
-    <div className="w-full h-full flex flex-col justify-end pointer-events-none">
+    <div 
+      className="w-full h-full flex flex-col justify-end pointer-events-none relative min-h-0"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setHasNewMessages(false);
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }}
+    >
       {/* Messages Feed */}
       <div className="flex-1 overflow-y-auto px-4 py-2 mb-3 scrollbar-none flex flex-col justify-end pointer-events-auto bg-gradient-to-t from-zinc-950/60 to-transparent rounded-xl">
         <motion.div
@@ -68,7 +85,7 @@ export function LiveChat({ roomId }: LiveChatProps) {
                 key={msg.id}
                 variants={itemVariants}
                 layout
-                className="text-xs bg-black/35 backdrop-blur-sm border border-white/5 px-3 py-1.5 rounded-xl w-fit max-w-[90%] leading-relaxed shadow-sm"
+                className="text-[13px] bg-black/40 backdrop-blur-md border border-white/5 px-3.5 py-2 rounded-xl w-fit max-w-[90%] leading-relaxed shadow-sm"
               >
                 <span className="font-mono font-bold text-cyan-400 mr-1.5">{msg.user}:</span>
                 <span className="text-zinc-200">{msg.text}</span>
@@ -79,6 +96,18 @@ export function LiveChat({ roomId }: LiveChatProps) {
         </motion.div>
       </div>
 
+      {hasNewMessages && (
+        <button 
+          onClick={() => {
+             setIsHovered(false);
+             chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          }}
+          className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-cyan-500 text-zinc-950 px-3 py-1 rounded-full text-[10px] font-bold shadow-lg flex items-center gap-1 animate-bounce pointer-events-auto z-50 cursor-pointer"
+        >
+          ↓ Tin nhắn mới
+        </button>
+      )}
+
       {/* Chat Input */}
       <div className="p-1 pointer-events-auto">
         <form onSubmit={handleSendMessage} className="flex gap-2 relative">
@@ -88,7 +117,7 @@ export function LiveChat({ roomId }: LiveChatProps) {
             type="text"
             value={chatMessage}
             onChange={(e) => setChatMessage(e.target.value)}
-            className="w-full bg-black/50 backdrop-blur-md border border-white/10 rounded-full pl-4 pr-10 py-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 placeholder-zinc-500 transition-all font-medium font-sans"
+            className="w-full bg-black/50 backdrop-blur-md border border-white/10 rounded-full pl-4 pr-10 py-3 text-[13px] text-white focus:outline-none focus:ring-1 focus:ring-cyan-500 placeholder-zinc-500 transition-all font-medium font-sans"
             placeholder="Gửi bình luận..."
           />
           <button
@@ -97,7 +126,7 @@ export function LiveChat({ roomId }: LiveChatProps) {
             disabled={!chatMessage.trim()}
             aria-label="Send message"
           >
-            <PaperPlaneRight size={12} weight="fill" />
+            <PaperPlaneRight size={14} weight="fill" />
           </button>
         </form>
       </div>

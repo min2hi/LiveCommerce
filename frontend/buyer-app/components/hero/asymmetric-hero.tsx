@@ -5,8 +5,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
-import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
-import { SparklesCore } from "@/components/ui/sparkles";
+import { ArrowRight, Play } from "@phosphor-icons/react";
 import { buildApiUrl } from "@/lib/api";
 
 interface LiveStream {
@@ -130,68 +129,49 @@ export function AsymmetricHero() {
   return (
     <section
       ref={containerRef}
-      className="relative w-full overflow-hidden bg-[#0d0f14] pt-28 pb-24 border-b border-white/5"
+      className="relative w-full overflow-hidden bg-[#050505] pt-20 pb-24"
     >
-      {/* Decorative clean background line to create editorial structure */}
-      <div className="absolute top-0 bottom-0 left-[8%] md:left-[12%] w-[1px] bg-white/5 hidden md:block"></div>
 
       <div className="mx-auto max-w-7xl px-4 md:px-8 relative">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
 
           {/* Column 1: Headline & Content (7 cols on desktop) */}
           <motion.div
-            className="md:col-span-7 flex flex-col justify-center pl-0 md:pl-12"
+            className="md:col-span-7 flex flex-col justify-center pl-0"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
-            <motion.div className="flex items-center gap-2 mb-6" variants={itemVariants}>
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-              <span className="text-[10px] uppercase tracking-[0.25em] text-cyan-400 font-mono block font-bold">
-                Live Commerce Network
-              </span>
+            <motion.div className="flex items-center gap-3 mb-8" variants={itemVariants}>
+              <div className="flex items-center gap-2 px-3 py-1.5 border border-[#333] bg-[#111] rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-white font-mono font-bold">
+                  Network Active
+                </span>
+              </div>
             </motion.div>
 
-            {/* Asymmetric Typography with Aceternity Text Generate Effect */}
-            <motion.div variants={itemVariants} className="mb-8 select-none">
-              <TextGenerateEffect
-                words="The live commerce interface."
-                className="text-5xl sm:text-6xl lg:text-7xl tracking-tight leading-[0.98] text-white [&_span:nth-child(3)]:text-cyan-400 [&_span:nth-child(3)]:italic [&_span:nth-child(3)]:font-normal"
-              />
+            {/* Brutalist Typography */}
+            <motion.div variants={itemVariants} className="mb-8">
+              <h1 className="text-[56px] sm:text-[72px] lg:text-[88px] font-sans font-black tracking-[-0.06em] leading-[0.9] text-white uppercase">
+                Shop<br />
+                <span className="text-[#444]">The Moment.</span>
+              </h1>
             </motion.div>
 
             <motion.p
-              className="text-base text-zinc-400 leading-relaxed max-w-[42ch] mb-12 font-normal"
+              className="text-sm text-[#888] leading-relaxed max-w-[42ch] mb-12 font-medium tracking-wide"
               variants={itemVariants}
             >
-              Experience high-definition video streams, real-time interactive chats, and one-click instant checkouts. Directly in your browser.
+              Next-generation shopping architecture. Interactive showcases with sub-second latency and frictionless checkouts.
             </motion.p>
 
             <motion.div className="flex flex-wrap items-center gap-4" variants={itemVariants}>
-              <Link href={streams[activeIndex] ? streams[activeIndex].link : "/"} passHref className="w-full sm:w-auto">
-                <div className="relative">
-                  {/* Sparkle particles behind CTA */}
-                  <div className="absolute -inset-4 pointer-events-none">
-                    <SparklesCore
-                      particleDensity={40}
-                      particleColor="#06b6d4"
-                      minSize={0.3}
-                      maxSize={1.2}
-                      speed={0.6}
-                    />
-                  </div>
-                  <Button size="lg" className="relative z-10 w-full inline-flex items-center gap-2 group cursor-pointer bg-cyan-500 text-zinc-950 font-semibold border-none hover:bg-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
-                    Enter Live Rooms
-                    <ArrowUpRight
-                      weight="bold"
-                      size={16}
-                      className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                    />
-                  </Button>
-                </div>
+              <Link href={streams[activeIndex] ? streams[activeIndex].link : "/"} className="w-full sm:w-auto block">
+                <button className="w-full sm:w-auto h-14 px-8 bg-white text-black font-bold uppercase tracking-[0.1em] text-xs flex items-center justify-center gap-3 hover:bg-[#ccc] transition-colors border-none cursor-pointer rounded-full shadow-lg">
+                  Enter Shows
+                  <ArrowRight weight="bold" size={16} />
+                </button>
               </Link>
             </motion.div>
           </motion.div>
@@ -228,46 +208,43 @@ export function AsymmetricHero() {
                       damping: 20,
                     }}
                     onClick={() => setActiveIndex(idx)}
-                    className={`absolute top-0 left-0 w-full h-full bg-[#181c25] rounded-2xl border transition-all duration-300 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] group ${isActive
-                        ? "border-white/10 hover:border-cyan-500/50 cursor-pointer"
-                        : "border-white/5 cursor-pointer opacity-85 hover:opacity-100"
+                    className={`absolute top-0 left-0 w-full h-full bg-[#0a0a0a] rounded-2xl border transition-all duration-300 overflow-hidden shadow-2xl group ${isActive
+                      ? "border-white cursor-pointer"
+                      : "border-[#333] cursor-pointer opacity-70 hover:opacity-100"
                       }`}
                   >
                     <Link href={stream.link} className={isActive ? "pointer-events-auto" : "pointer-events-none"}>
                       <div className="relative w-full h-full">
-                        {/* Lazy load Video only on the top/focused card for 60fps performance */}
                         {isActive ? (
                           <video
                             src={stream.videoUrl}
-                            className="w-full h-full object-cover select-none pointer-events-none opacity-60 group-hover:opacity-80 transition-opacity duration-300"
+                            className="w-full h-full object-cover select-none pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity duration-300 grayscale contrast-125"
                             autoPlay loop muted playsInline
                           />
                         ) : (
                           <img
                             src={stream.thumbnailUrl}
                             alt={stream.title}
-                            className="w-full h-full object-cover select-none pointer-events-none opacity-40"
+                            className="w-full h-full object-cover select-none pointer-events-none opacity-40 grayscale"
                             loading="lazy"
                           />
                         )}
 
-                        {/* Live Status Badge */}
-                        <div className="absolute top-4 left-4 flex items-center gap-1.5 px-2.5 py-1 rounded bg-black/60 backdrop-blur-md text-[10px] font-bold text-zinc-300 font-mono border border-white/10 uppercase tracking-wider">
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                        {/* Brutalist Live Status Badge */}
+                        <div className="absolute top-4 left-4 px-2.5 py-1 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-md shadow-sm">
                           Live
                         </div>
 
                         {/* Viewers Badge */}
-                        <div className="absolute top-4 right-4 px-2.5 py-1 rounded bg-black/60 backdrop-blur-md text-[10px] font-bold text-zinc-300 font-mono border border-white/10">
+                        <div className="absolute top-4 right-4 px-2.5 py-1 bg-[#111] text-[#fff] text-[10px] font-bold font-mono border border-[#333] rounded-md shadow-sm">
                           {stream.viewers} watching
                         </div>
 
-                        {/* Dynamic Bidding Deal Applied overlay (only for active card) */}
+                        {/* Dynamic Bidding Deal Applied overlay */}
                         {isActive && stream.deal && (
-                          <div className="absolute bottom-16 left-4 z-30">
-                            <div className="bg-[#0b0d10]/95 px-3 py-1.5 rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.5)] flex items-center gap-2 border border-cyan-500/30 backdrop-blur-md">
-                              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.5)]"></span>
-                              <span className="text-cyan-400 font-mono font-bold text-[9px] md:text-[10px] tracking-wider uppercase">
+                          <div className="absolute bottom-20 left-4 z-30">
+                            <div className="bg-[#111] px-3 py-1.5 border border-[#333] flex items-center gap-2 rounded-md shadow-lg">
+                              <span className="text-white font-mono font-bold text-[9px] md:text-[10px] tracking-widest uppercase">
                                 {stream.deal}
                               </span>
                             </div>
@@ -275,13 +252,13 @@ export function AsymmetricHero() {
                         )}
 
                         {/* Title and Streamer info */}
-                        <div className="absolute bottom-4 left-4 right-4 z-10 flex flex-col gap-0.5">
-                          <span className="text-xs font-mono font-bold text-cyan-400">@{stream.streamer}</span>
-                          <span className="text-sm font-semibold text-white truncate">{stream.title}</span>
+                        <div className="absolute bottom-4 left-4 right-4 z-10 flex flex-col gap-1">
+                          <span className="text-[10px] font-mono font-bold text-[#888] uppercase tracking-widest">@{stream.streamer}</span>
+                          <span className="text-sm font-black text-white uppercase tracking-tight truncate">{stream.title}</span>
                         </div>
 
                         {/* Ambient overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none" />
                       </div>
                     </Link>
                   </motion.div>
@@ -290,35 +267,38 @@ export function AsymmetricHero() {
             </div>
 
             {/* Editorial Registry List: Displays all 4 streams & titles clearly */}
-            <div className="mt-8 flex flex-col gap-2 w-[calc(100%-20px)]">
+            <div className="mt-8 flex flex-col w-[calc(100%-20px)] border border-[#222] rounded-xl overflow-hidden shadow-lg bg-[#050505]">
               {streams.map((stream, idx) => {
                 const isActive = idx === activeIndex;
                 return (
                   <button
                     key={stream.id}
                     onClick={() => setActiveIndex(idx)}
-                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-300 cursor-pointer text-left ${isActive
-                        ? "bg-cyan-500/[0.03] border-cyan-500/20 text-white shadow-[0_4px_12px_rgba(6,182,212,0.03)]"
-                        : "bg-[#181c25]/10 border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-[#181c25]/20"
+                    className={`w-full flex items-center justify-between p-4 border-b border-[#222] last:border-b-0 transition-colors cursor-pointer text-left ${isActive
+                      ? "bg-[#111] text-white"
+                      : "bg-transparent text-[#666] hover:text-white hover:bg-[#0a0a0a]"
                       }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className={`font-mono text-[10px] font-bold ${isActive ? "text-cyan-400" : "text-zinc-700"}`}>
-                        0{idx + 1}
-                      </span>
+                    <div className="flex items-center gap-4 min-w-0">
+                      {isActive ? (
+                        <Play size={12} weight="fill" className="text-white" />
+                      ) : (
+                        <span className="font-mono text-[10px] font-bold">
+                          0{idx + 1}
+                        </span>
+                      )}
+
                       <div className="flex flex-col min-w-0">
-                        <span className={`text-xs font-bold leading-none mb-1 ${isActive ? "text-cyan-400" : "text-zinc-400"}`}>
+                        <span className={`text-[10px] uppercase tracking-widest font-bold leading-none mb-1.5 ${isActive ? "text-[#fff]" : "text-[#666]"}`}>
                           @{stream.streamer}
                         </span>
-                        <span className={`text-[10px] leading-none truncate max-w-[160px] md:max-w-[200px] ${isActive ? "text-zinc-300 font-medium" : "text-zinc-600"}`}>
+                        <span className={`text-xs uppercase tracking-tight truncate max-w-[160px] md:max-w-[200px] ${isActive ? "text-[#aaa] font-bold" : "text-[#555] font-medium"}`}>
                           {stream.title}
                         </span>
                       </div>
                     </div>
 
-                    <span className={`text-[10px] font-mono font-bold flex items-center gap-1.5 px-2 py-1 rounded-md ${isActive ? "text-cyan-400 bg-cyan-500/10" : "text-zinc-600 bg-zinc-800/10"
-                      }`}>
-                      <span className={`w-1 h-1 rounded-full ${isActive ? "bg-cyan-400 animate-pulse" : "bg-zinc-600"}`}></span>
+                    <span className={`text-[10px] font-mono font-bold ${isActive ? "text-white" : "text-[#444]"}`}>
                       {stream.viewers}
                     </span>
                   </button>

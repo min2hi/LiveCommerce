@@ -3,115 +3,97 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, useMotionValueEvent, useScroll, AnimatePresence } from "motion/react";
-
-import { Magnetic } from "@/components/ui/magnetic";
+import { ShoppingCart, Bell, User, MagnifyingGlass, Storefront, DeviceMobile, Question } from "@phosphor-icons/react";
+import { motion, AnimatePresence } from "motion/react";
 
 export function Navbar() {
   const pathname = usePathname();
   const [hasToken, setHasToken] = useState(false);
-  const [visible, setVisible] = useState(true);
-  const { scrollY } = useScroll();
 
   useEffect(() => {
     const token = localStorage.getItem("buyer_token");
     setHasToken(!!token);
   }, [pathname]);
 
-  // Floating navbar: hide on scroll down, show on scroll up
-  useMotionValueEvent(scrollY, "change", (current) => {
-    const previous = scrollY.getPrevious() ?? 0;
-    const direction = current - previous;
-
-    if (current < 100) {
-      setVisible(true);
-    } else if (direction < -5) {
-      setVisible(true);
-    } else if (direction > 5) {
-      setVisible(false);
-    }
-  });
-
-  const handleLogout = () => {
-    localStorage.removeItem("buyer_token");
-    setHasToken(false);
-    window.location.reload();
-  };
+  if (pathname.startsWith("/live")) {
+    return null;
+  }
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.header
-        className="fixed top-5 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl h-14 bg-[#0d0f14]/85 border border-white/10 backdrop-blur-md rounded-full z-50 flex items-center justify-between px-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
-        initial={{ y: -100, opacity: 0 }}
-        animate={{
-          y: visible ? 0 : -100,
-          opacity: visible ? 1 : 0,
-        }}
-        transition={{
-          duration: 0.3,
-          type: "spring",
-          stiffness: 260,
-          damping: 25,
-        }}
-      >
-        {/* Brand logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-7 h-7 rounded-full bg-cyan-500 flex items-center justify-center text-[#0d0f14] font-bold text-[10px] font-mono transition-transform group-hover:scale-105 active:scale-95 shadow-[0_0_12px_rgba(6,182,212,0.4)]">
-            LC
-          </div>
-          <span className="font-bold text-xs uppercase tracking-widest text-white font-mono">
-            LiveCommerce
-          </span>
-        </Link>
-
-        {/* Nav links */}
-        <nav className="hidden sm:flex items-center gap-6">
-          <Link
-            href="/live/cc9db567-1d5e-45a2-8544-c3a098f6718f"
-            className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-400 hover:text-cyan-400 transition-colors"
-          >
-            Live Rooms
+    <header className="sticky top-0 z-50 w-full bg-[#050505] text-[#e0e0e0] border-b border-white/[0.04] transition-all">
+      {/* Main Navbar - Grid System & Invisible Borders */}
+      <div className="w-full">
+        <div className="max-w-7xl mx-auto px-6 h-20 md:h-24 grid grid-cols-12 items-center gap-4">
+          
+          {/* Brand logo - Col 1 to 3 */}
+          <Link href="/" className="col-span-4 md:col-span-3 flex items-center group">
+            <span className="font-sans text-[24px] md:text-[26px] tracking-[-0.05em] transition-all duration-500">
+              <span className="font-light text-zinc-400 group-hover:text-white transition-colors duration-500">Live</span>
+              <strong className="font-extrabold bg-gradient-to-b from-white via-zinc-100 to-zinc-500 bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">Commerce</strong>
+              <span className="inline-block w-1.5 h-1.5 bg-zinc-300 rounded-full ml-1 mb-1 group-hover:bg-cyan-400 transition-colors duration-500 shadow-[0_0_8px_rgba(255,255,255,0.5)] group-hover:shadow-[0_0_12px_rgba(34,211,238,0.8)]"></span>
+            </span>
           </Link>
-          <a
-            href="/#trending-deals"
-            className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-400 hover:text-cyan-400 transition-colors"
-          >
-            Trending Deals
-          </a>
-        </nav>
 
-        {/* Action CTA */}
-        <div className="flex items-center gap-3">
-          {hasToken ? (
-            <div className="flex items-center gap-3">
-              <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[9px] font-bold uppercase tracking-wider font-mono rounded-full shadow-[0_0_8px_rgba(6,182,212,0.1)]">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
-                Connected
-              </span>
-              <Magnetic range={30}>
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-1.5 bg-white text-zinc-950 rounded-full font-mono text-[9px] font-bold uppercase tracking-widest hover:bg-zinc-200 transition-colors active:scale-95 cursor-pointer shadow-sm"
-                >
-                  Logout
-                </button>
-              </Magnetic>
+          {/* Search Bar - Col 4 to 8 - Wider and more prominent line */}
+          <div className="col-span-6 md:col-span-6 flex justify-center px-4 hidden md:flex">
+            <div className="w-full flex items-center border-b border-[#333] hover:border-[#666] pb-2 group focus-within:border-white transition-colors duration-300 relative">
+              <MagnifyingGlass size={18} weight="light" className="text-[#666] group-focus-within:text-white transition-colors" />
+              <input
+                type="text"
+                placeholder="Search items, streams, creators..."
+                className="w-full bg-transparent border-none pl-4 pr-12 text-[14px] text-white placeholder-[#555] focus:outline-none tracking-wide"
+              />
+              <span className="absolute right-0 text-[10px] text-[#444] uppercase tracking-widest font-bold hidden lg:block group-focus-within:text-white transition-colors">Enter ↵</span>
             </div>
-          ) : (
-            <Link href="/login">
-              <Magnetic range={30}>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-4 py-1.5 bg-cyan-500 text-zinc-950 rounded-full font-mono text-[9px] font-bold uppercase tracking-widest hover:bg-cyan-400 transition-colors cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.3)]"
-                >
-                  Sign In
-                </motion.button>
-              </Magnetic>
+          </div>
+
+          {/* Actions - Col 9 to 12 - Icon Driven */}
+          <div className="col-span-8 md:col-span-3 flex justify-end items-center gap-6 text-zinc-400">
+          
+            <button className="md:hidden text-zinc-400 hover:text-white transition-colors">
+               <MagnifyingGlass size={24} weight="light" />
+            </button>
+
+            {/* Seller Center */}
+            <Link href="/seller-center" className="hidden lg:flex hover:text-white transition-colors group relative" aria-label="Seller Center">
+              <Storefront size={24} weight="light" />
             </Link>
-          )}
+
+            {/* Download App */}
+            <Link href="/download" className="hidden lg:flex hover:text-white transition-colors group relative" aria-label="Download App">
+              <DeviceMobile size={24} weight="light" />
+            </Link>
+
+            {/* Notifications */}
+            <button className="hover:text-white transition-colors relative group" aria-label="Notifications">
+              <Bell size={24} weight="light" />
+              <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full min-w-[16px] text-center border-2 border-[#050505]">5</span>
+            </button>
+
+            {/* Support/Help */}
+            <Link href="/help" className="hidden md:flex hover:text-white transition-colors group relative" aria-label="Support">
+              <Question size={24} weight="light" />
+            </Link>
+
+            {/* Cart */}
+            <Link href="/cart" className="hover:text-white transition-colors relative group" aria-label="Cart">
+              <ShoppingCart size={24} weight="light" />
+              <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full min-w-[16px] text-center border-2 border-[#050505]">3</span>
+            </Link>
+
+            {/* User Profile */}
+            {hasToken ? (
+              <Link href="/user/profile" className="hover:text-white transition-colors" aria-label="Account">
+                <User size={24} weight="light" />
+              </Link>
+            ) : (
+              <Link href="/login" className="text-xs font-bold uppercase tracking-widest text-[#999] hover:text-white transition-colors border border-white/10 px-3 py-1.5 rounded-full hover:bg-white/5">
+                Sign In
+              </Link>
+            )}
+          </div>
         </div>
-      </motion.header>
-    </AnimatePresence>
+      </div>
+    </header>
   );
 }
