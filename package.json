@@ -36,18 +36,18 @@
     "infra:reset": "docker compose down -v && docker compose up -d"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.0",
+    "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
     "@playwright/test": "^1.61.1",
     "@typescript-eslint/eslint-plugin": "^8.63.0",
     "@typescript-eslint/parser": "^8.63.0",
-    "eslint": "^9.0.0",
+    "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.8",
-    "prettier": "^3.9.4"
+    "lint-staged": "^17.1.0",
+    "prettier": "^3.9.5"
   },
   "dependencies": {
-    "postcss": "^8.5.19"
+    "postcss": "^8.5.20"
   }
 }
