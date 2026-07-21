@@ -15,7 +15,7 @@
     "clsx": "^2.1.1",
     "motion": "^12.42.2",
     "next": "^16.2.10",
-    "postcss": "^8.4.31",
+    "postcss": "^8.5.20",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "socket.io-client": "^4.8.3",
@@ -24,11 +24,11 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
+    "@types/node": "^26.1.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "eslint": "^9.0.0",
+    "eslint": "^10.7.0",
     "eslint-config-next": "^16.2.10",
-    "typescript": "^5.7.2"
+    "typescript": "^7.0.2"
   }
 }
