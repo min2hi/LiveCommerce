@@ -45,7 +45,7 @@ export function HowItWorks() {
             
             {/* Visual Callout or Link */}
             <div className="hidden lg:block">
-              <Link href="/live/cc9db567-1d5e-45a2-8544-c3a098f6718f" className="group inline-flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase tracking-widest hover:text-cyan-300 transition-colors">
+              <Link href="/#trending-deals" className="group inline-flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase tracking-widest hover:text-cyan-300 transition-colors">
                 <span>View Live Streams</span>
                 <ArrowUpRight size={14} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>

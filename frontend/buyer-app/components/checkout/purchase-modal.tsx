@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, MapPin, CreditCard, Money, CheckCircle, WarningCircle } from "@phosphor-icons/react";
+import { X, MapPin, CreditCard, Money, CheckCircle, WarningCircle, ShoppingCart } from "@phosphor-icons/react";
 import { buildApiUrl } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProductDetails {
   id: string;
@@ -25,6 +26,8 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
   const [retryCount, setRetryCount] = useState(0);
   const idempotencyKeyRef = React.useRef<string>("");
 
+  const { token } = useAuth();
+  
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -35,59 +38,62 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
     }
   }, [isOpen]);
 
-  const getOrInitToken = async (): Promise<string | null> => {
-    const token = localStorage.getItem("buyer_token");
-    if (token) return token;
-    return null;
-  };
-
-  const attemptCheckout = async (token: string, idempotencyKey: string, currentRetry = 0) => {
+  const attemptCheckout = async (authToken: string, idempotencyKey: string) => {
     if (!product) return;
-    try {
-      const res = await fetch(buildApiUrl("/checkout"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-          "X-Idempotency-Key": idempotencyKey,
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          quantity: 1,
-        }),
-      });
+    
+    let currentRetry = 0;
+    while (currentRetry <= 5) {
+      try {
+        const res = await fetch(buildApiUrl("/checkout"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`,
+            "X-Idempotency-Key": idempotencyKey,
+          },
+          body: JSON.stringify({
+            productId: product.id,
+            quantity: 1,
+          }),
+        });
 
-      if (res.status === 202 || res.status === 200) {
-        setStatus("success");
-        // Auto close after 3 seconds on success
-        setTimeout(() => onClose(), 3000);
-      } else if (res.status === 429) {
-        if (currentRetry < 5) {
-          setStatus("waiting");
-          setRetryCount(currentRetry + 1);
-          const delay = Math.pow(2, currentRetry) * 500;
-          setTimeout(() => attemptCheckout(token, idempotencyKey, currentRetry + 1), delay);
-        } else {
-          setStatus("rate_limited");
-          setErrorMsg("Hệ thống đang quá tải, vui lòng thử lại sau.");
+        if (res.status === 202 || res.status === 200) {
+          setStatus("success");
+          setTimeout(() => onClose(), 3000);
+          return;
+        } else if (res.status === 429) {
+          if (currentRetry < 5) {
+            setStatus("waiting");
+            setRetryCount(currentRetry + 1);
+            await new Promise(r => setTimeout(r, Math.pow(2, currentRetry) * 500));
+            currentRetry++;
+            continue;
+          } else {
+            setStatus("rate_limited");
+            setErrorMsg("Hệ thống đang quá tải, vui lòng thử lại sau.");
+            setTimeout(() => setStatus("idle"), 4000);
+            return;
+          }
+        } else if (res.status === 409) {
+          const errorData = await res.json().catch(() => ({}));
+          setStatus("error");
+          setErrorMsg(errorData.error || "Rất tiếc, sản phẩm đã hết hàng.");
           setTimeout(() => setStatus("idle"), 4000);
+          return;
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          setStatus("error");
+          setErrorMsg(errorData.error || "Giao dịch thất bại.");
+          setTimeout(() => setStatus("idle"), 4000);
+          return;
         }
-      } else if (res.status === 409) {
-        const errorData = await res.json().catch(() => ({}));
+      } catch (err) {
+        console.error("[PurchaseModal] Checkout failed:", err);
         setStatus("error");
-        setErrorMsg(errorData.error || "Rất tiếc, sản phẩm đã hết hàng.");
+        setErrorMsg("Lỗi kết nối mạng.");
         setTimeout(() => setStatus("idle"), 4000);
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        setStatus("error");
-        setErrorMsg(errorData.error || "Giao dịch thất bại.");
-        setTimeout(() => setStatus("idle"), 4000);
+        return;
       }
-    } catch (err) {
-      console.error("[PurchaseModal] Checkout failed:", err);
-      setStatus("error");
-      setErrorMsg("Lỗi kết nối mạng.");
-      setTimeout(() => setStatus("idle"), 4000);
     }
   };
 
@@ -96,7 +102,6 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
     setStatus("loading");
     setErrorMsg("");
 
-    const token = await getOrInitToken();
     if (!token) {
       setStatus("error");
       setErrorMsg("Vui lòng đăng nhập để mua hàng.");
@@ -107,7 +112,7 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
     if (!idempotencyKeyRef.current) {
       idempotencyKeyRef.current = `idem-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
-    await attemptCheckout(token, idempotencyKeyRef.current, 0);
+    await attemptCheckout(token, idempotencyKeyRef.current);
   };
 
   if (!product) return null;
@@ -161,11 +166,17 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-none">
                   {/* Product Summary */}
                   <div className="flex gap-4 p-3 bg-zinc-900 rounded-2xl border border-white/5">
-                    <img 
-                      src={product.imageUrl || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&q=80"} 
-                      alt={product.name} 
-                      className="w-20 h-20 object-cover rounded-xl bg-zinc-800"
-                    />
+                    {product.imageUrl ? (
+                      <img 
+                        src={product.imageUrl} 
+                        alt={product.name} 
+                        className="w-20 h-20 object-cover rounded-xl bg-zinc-800"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center">
+                        <ShoppingCart size={24} className="text-zinc-600" />
+                      </div>
+                    )}
                     <div className="flex flex-col justify-center">
                       <h3 className="text-sm font-bold text-white line-clamp-1">{product.name}</h3>
                       <p className="text-xs text-zinc-500 mt-1">Phân loại: Mặc định</p>
@@ -176,11 +187,11 @@ export function PurchaseModal({ isOpen, onClose, product }: PurchaseModalProps) 
                   {/* Shipping Address */}
                   <div className="space-y-3">
                     <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Địa chỉ nhận hàng</h4>
-                    <div className="flex items-start gap-3 p-4 bg-zinc-900/50 rounded-2xl border border-white/5">
-                      <MapPin size={20} className="text-zinc-400 mt-0.5 shrink-0" weight="fill" />
+                    <div className="flex items-start gap-3 p-4 bg-zinc-900/50 rounded-2xl border border-white/5 hover:bg-zinc-800/50 transition-colors cursor-pointer group">
+                      <MapPin size={20} className="text-zinc-500 mt-0.5 shrink-0 group-hover:text-cyan-400 transition-colors" weight="fill" />
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white">Huy Nguyễn (0987.654.321)</span>
-                        <span className="text-xs text-zinc-400 mt-1 leading-relaxed">Tòa nhà Bitexco, Số 2 Hải Triều, Quận 1, TP. Hồ Chí Minh</span>
+                        <span className="text-sm font-bold text-white">Địa chỉ mặc định</span>
+                        <span className="text-xs text-zinc-400 mt-1 leading-relaxed">Vui lòng cập nhật chi tiết giao hàng trong phần Hồ sơ (Profile) của bạn.</span>
                       </div>
                     </div>
                   </div>

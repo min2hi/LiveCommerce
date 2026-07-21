@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { NotificationManager } from '@/components/notification-manager';
 import { Navbar } from '@/components/ui/navbar';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -27,11 +28,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="bg-[#0d0f14] font-sans text-white antialiased min-h-[100dvh] flex flex-col" suppressHydrationWarning>
-        <NotificationManager />
-        <Navbar />
-        <main className="flex-1 flex flex-col">
-          {children}
-        </main>
+        <AuthProvider>
+          <NotificationManager />
+          <Navbar />
+          <main className="flex-1 flex flex-col">
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );

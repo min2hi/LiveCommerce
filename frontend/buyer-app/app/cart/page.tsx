@@ -14,11 +14,6 @@ export default function CartPage() {
         <div className="w-32 h-32 bg-[#050505] border border-white/10 rounded-3xl flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(34,211,238,0.1)] relative">
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl"></div>
           <ShoppingCart size={48} weight="light" className="text-zinc-500" />
-          
-          {/* Decorative Elements */}
-          <div className="absolute -top-3 -right-3 w-8 h-8 bg-black border border-white/10 flex items-center justify-center text-[10px] font-bold text-cyan-400">
-            0
-          </div>
         </div>
 
         <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter mb-4">
@@ -31,7 +26,7 @@ export default function CartPage() {
 
         <Link 
           href="/" 
-          className="group relative inline-flex items-center gap-3 bg-white text-black px-8 py-4 font-bold uppercase tracking-widest text-xs hover:bg-zinc-200 transition-colors"
+          className="group relative inline-flex items-center justify-center gap-3 bg-white text-black px-8 py-4 font-bold uppercase tracking-widest text-xs rounded-full hover:bg-zinc-200 transition-colors shadow-md"
         >
           Khám phá ngay
           <ArrowRight size={16} weight="bold" className="group-hover:translate-x-1 transition-transform" />

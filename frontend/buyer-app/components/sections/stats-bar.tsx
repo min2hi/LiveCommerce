@@ -3,6 +3,9 @@
 import React, { useEffect, useRef } from "react";
 import { useMotionValue, animate, useInView } from "motion/react";
 import { MovingBorder } from "@/components/ui/moving-border";
+import useSWR from "swr";
+import { buildApiUrl } from "@/lib/api";
+import { fetcher } from "@/lib/fetcher";
 
 interface AnimatedCounterProps {
   from: number;
@@ -35,6 +38,12 @@ function AnimatedCounter({ from, to, duration = 1.8, suffix = "" }: AnimatedCoun
 }
 
 export function StatsBar() {
+  const { data: metrics } = useSWR(
+    buildApiUrl("/metrics/public"),
+    fetcher,
+    { refreshInterval: 10000, fallbackData: { totalStreams: 0, totalViewers: 0, totalDeals: 0 } }
+  );
+
   return (
     <div className="w-full relative z-20 px-4 md:px-8 -mt-8">
       <MovingBorder
@@ -50,7 +59,9 @@ export function StatsBar() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
           </span>
           <span className="text-zinc-400 uppercase tracking-widest">Platform Status:</span>
-          <span className="font-bold text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse">12 STREAMS ONLINE</span>
+          <span className="font-bold text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse">
+            <AnimatedCounter from={0} to={metrics.totalStreams || 0} /> STREAMS ONLINE
+          </span>
         </div>
 
         <div className="h-px w-8 bg-white/10 sm:h-4 sm:w-px"></div>
@@ -58,7 +69,7 @@ export function StatsBar() {
         <div className="flex items-center gap-2">
           <span className="text-zinc-400 uppercase tracking-widest">Active Viewers:</span>
           <span className="font-bold text-white">
-            <AnimatedCounter from={9500} to={12408} /> WATCHING
+            <AnimatedCounter from={0} to={metrics.totalViewers || 0} /> WATCHING
           </span>
         </div>
 
@@ -67,7 +78,7 @@ export function StatsBar() {
         <div className="flex items-center gap-2">
           <span className="text-zinc-400 uppercase tracking-widest">Deals Claimed:</span>
           <span className="font-bold text-white">
-            <AnimatedCounter from={300} to={482} /> SECURED
+            <AnimatedCounter from={0} to={metrics.totalDeals || 0} /> SECURED
           </span>
         </div>
       </MovingBorder>

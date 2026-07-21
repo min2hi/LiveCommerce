@@ -234,7 +234,7 @@ async function* runMockAgentStream(
     // Query real Redis stock
     const stock = await redis.get(`product:stock:${productId}`);
     if (stock !== null) {
-      responseText = `[Mock AI] Hiện tại sản phẩm Sony WH-1000XM5 đang còn đúng ${stock} chiếc trong kho flash sale của Shop! Bạn hãy nhanh tay nhấn chốt đơn để không bỏ lỡ cơ hội nhé! ⚡`;
+      responseText = `[Mock AI] Hiện tại sản phẩm này đang còn đúng ${stock} chiếc trong kho flash sale của Shop! Bạn hãy nhanh tay nhấn chốt đơn để không bỏ lỡ cơ hội nhé! ⚡`;
     } else {
       responseText = `[Mock AI] Mình đã kiểm tra hệ thống, sản phẩm này hiện chưa được cấu hình tồn kho trên Redis. Hãy liên hệ với streamer để biết chi tiết nhé!`;
     }
@@ -254,15 +254,15 @@ async function* runMockAgentStream(
       ]);
       if (dbRes.rows.length > 0) {
         const prod = dbRes.rows[0];
-        responseText = `[Mock AI] Tai nghe **${prod.name}** đang có giá khuyến mãi cực ưu đãi chỉ **$${prod.price}**! Đặc điểm nổi bật: ${prod.description || 'Chống ồn chủ động vượt trội, thời lượng pin lên đến 30 tiếng liên tục và thiết kế đeo cực kỳ êm tai.'}`;
+        responseText = `[Mock AI] Sản phẩm **${prod.name}** đang có giá khuyến mãi cực ưu đãi chỉ **$${prod.price}**! Đặc điểm nổi bật: ${prod.description || 'Chất lượng tuyệt vời, tính năng ưu việt, thiết kế ấn tượng.'}`;
       } else {
-        responseText = `[Mock AI] Sản phẩm này hiện tại chưa có thông số cụ thể trong Postgres. Tuy nhiên đây là dòng tai nghe chống ồn Sony WH-1000XM5 cao cấp nhất hiện tại!`;
+        responseText = `[Mock AI] Sản phẩm này hiện tại chưa có thông số cụ thể trong Postgres. Tuy nhiên đây là dòng sản phẩm cực hot hiện tại!`;
       }
     } catch {
-      responseText = `[Mock AI] Tai nghe Sony WH-1000XM5 sở hữu công nghệ chống ồn đỉnh cao ANC, chất âm Hi-Res sắc nét, pin 30 giờ sạc nhanh. Giá chỉ $299 trong phiên live hôm nay!`;
+      responseText = `[Mock AI] Sản phẩm sở hữu chất lượng tuyệt hảo, tính năng cao cấp. Giá chỉ có ưu đãi trong phiên live hôm nay!`;
     }
   } else {
-    responseText = `[Mock AI] Chào bạn! Mình là Trợ lý Mua sắm ảo của Shop. Bạn cần tư vấn về thông số kỹ thuật (specs) hay kiểm tra số lượng tồn kho (stock) còn lại của tai nghe Sony WH-1000XM5? Mình sẵn sàng hỗ trợ bạn ngay!`;
+    responseText = `[Mock AI] Chào bạn! Mình là Trợ lý Mua sắm ảo của Shop. Bạn cần tư vấn về thông số kỹ thuật (specs) hay kiểm tra số lượng tồn kho (stock) còn lại của sản phẩm này? Mình sẵn sàng hỗ trợ bạn ngay!`;
   }
 
   // Stream text character by character with output guardrails applied in sliding window

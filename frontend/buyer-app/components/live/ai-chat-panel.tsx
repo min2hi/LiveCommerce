@@ -19,7 +19,7 @@ export function AiChatPanel({ shopId, productId = "d3b4a9cf-5a5d-47b0-b332-e6a7e
     {
       id: 1,
       user: "AI Assistant",
-      text: "Xin chào! Mình là Trợ lý Mua sắm ảo. Bạn cần mình tư vấn thông số kỹ thuật (gõ 'specs') hay số lượng tồn kho (gõ 'stock') của tai nghe Sony WH-1000XM5? 😊",
+      text: "Xin chào! Mình là Trợ lý Mua sắm ảo. Bạn cần tư vấn thông số kỹ thuật (gõ 'specs') hay kiểm tra số lượng tồn kho (gõ 'stock') của sản phẩm này? 😊",
       isAi: true,
     },
   ]);

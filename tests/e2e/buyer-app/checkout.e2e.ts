@@ -4,6 +4,22 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Flash Sale Checkout Flow", () => {
+  let streamIdToCleanup: string | null = null;
+  let streamerTokenToCleanup: string | null = null;
+
+  test.afterEach(async ({ request }) => {
+    if (streamIdToCleanup && streamerTokenToCleanup) {
+      await request.post(
+        `http://localhost:3000/api/livestreams/${streamIdToCleanup}/end`,
+        {
+          headers: { Authorization: `Bearer ${streamerTokenToCleanup}` },
+        },
+      );
+      streamIdToCleanup = null;
+      streamerTokenToCleanup = null;
+    }
+  });
+
   test.beforeEach(async ({ page, request }) => {
     // Pipe browser console messages to terminal logs
     page.on("console", (msg) => console.log("BROWSER CONSOLE:", msg.text()));
@@ -44,17 +60,41 @@ test.describe("Flash Sale Checkout Flow", () => {
     const loginData = await loginRes.json();
     const token = loginData.token;
 
-    // 4. Navigate to initialize localStorage context
-    await page.goto("/live/1");
+    // 4. Start a livestream as Streamer1
+    const streamerLogin = await request.post(
+      "http://localhost:3000/api/auth/login",
+      {
+        data: { email: "streamer1@livecommerce.com", password: "password123" },
+      },
+    );
+    expect(streamerLogin.ok()).toBeTruthy();
+    const { token: streamerToken } = await streamerLogin.json();
+
+    const streamRes = await request.post(
+      "http://localhost:3000/api/livestreams/start",
+      {
+        headers: { Authorization: `Bearer ${streamerToken}` },
+        data: { title: "Test Flash Sale Stream" },
+      },
+    );
+    expect(streamRes.ok()).toBeTruthy();
+    const streamData = await streamRes.json();
+    const streamId = streamData.id;
+
+    streamIdToCleanup = streamId;
+    streamerTokenToCleanup = streamerToken;
+
+    // 5. Navigate to initialize localStorage context
+    await page.goto(`/live/${streamId}`);
     await page.evaluate((jwt) => {
       localStorage.setItem("buyer_token", jwt);
     }, token);
 
-    // 5. Reload to apply authenticated state
+    // 6. Reload to apply authenticated state
     await page.reload();
 
     // Wait for the page to be fully interactive
-    await expect(page.locator("text=TechGear Official")).toBeVisible({
+    await expect(page.locator("text=Streamer1's Tech Shop")).toBeVisible({
       timeout: 15000,
     });
   });

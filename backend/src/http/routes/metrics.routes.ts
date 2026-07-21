@@ -5,7 +5,10 @@ import { authMiddleware } from '../middlewares/auth.middleware';
 export function getMetricsRouter(controller: MetricsController): Router {
   const router = Router();
 
-  // Protect all metrics routes
+  // Public routes
+  router.get('/public', controller.getPublicMetrics);
+
+  // Protect internal metrics routes
   router.use(authMiddleware);
 
   router.get('/admin', controller.getAdminMetrics);
