@@ -7,6 +7,10 @@ const nextConfig = {
     // We already run type-check in a dedicated CI step for the whole monorepo
     ignoreBuildErrors: true,
   },
+  eslint: {
+    // We already run lint in a dedicated CI step
+    ignoreDuringBuilds: true,
+  },
 
   // Cho phép Next.js kết nối tới backend API server (chạy ở port 3000)
   async rewrites() {
