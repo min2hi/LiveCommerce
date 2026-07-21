@@ -17,7 +17,7 @@ interface LiveStreamPlayerProps {
 interface ActiveStream {
   id: string;
   title?: string;
-  shop_name?: string;
+  shopName?: string;
   username?: string;
   viewers?: number;
   shopId?: string;
@@ -62,7 +62,7 @@ export function LiveStreamPlayer({ streamId }: LiveStreamPlayerProps) {
 
   const streamInfo = {
     title: active.title || "Live Stream",
-    streamer: active.shop_name || active.username || "Streamer",
+    streamer: active.shopName || active.username || "Streamer",
     viewers: active.viewers ? `${(active.viewers / 1000).toFixed(1)}K` : "1.2K",
     shopId: active.shopId || "default-shop",
   };
@@ -98,7 +98,7 @@ export function LiveStreamPlayer({ streamId }: LiveStreamPlayerProps) {
         </div>
 
         {/* Bottom Left: Public Stream Chat */}
-        <div className="relative z-20 w-full max-w-[400px] h-[400px] p-4 md:p-6 pointer-events-none mt-auto">
+        <div className="absolute bottom-[40%] md:bottom-0 left-0 z-20 w-full max-w-[400px] h-[35vh] md:h-[400px] p-4 md:p-6 pointer-events-none">
           <LiveChat roomId={streamId} />
         </div>
 
@@ -108,7 +108,7 @@ export function LiveStreamPlayer({ streamId }: LiveStreamPlayerProps) {
             <AuctionWidget shopId={streamInfo.shopId} />
           </div>
         </div>
-        <div className="absolute top-[60%] left-0 right-0 bottom-0 md:hidden z-10 bg-zinc-950/80 backdrop-blur-xl border-t border-white/10 rounded-t-3xl p-4 flex flex-col justify-between shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <div className="absolute top-[60%] left-0 right-0 bottom-0 md:hidden z-30 bg-zinc-950/80 backdrop-blur-xl border-t border-white/10 rounded-t-3xl p-4 flex flex-col justify-between shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
            <ProductShowcase shopId={streamInfo.shopId} />
         </div>
 
